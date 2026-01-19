@@ -18,6 +18,14 @@ export interface UsageEntry {
   quantity: number;
 }
 
+export interface Notification {
+  id: number;
+  type: 'deleted' | 'added' | 'updated';
+  message: string;
+  itemName: string;
+  timestamp: string;
+}
+
 export type TabType = 'stock' | 'tasks' | 'reports';
 
 export const BOX_OPTIONS = [

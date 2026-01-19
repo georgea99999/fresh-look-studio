@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { Plus, Filter, Download, RotateCcw, Package } from 'lucide-react';
+import { Filter, Download, Package } from 'lucide-react';
 import { StockItem, BOX_OPTIONS } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -12,19 +10,15 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import StockItemRow from './StockItem';
-import { cn } from '@/lib/utils';
 
 interface StockListProps {
   items: StockItem[];
   searchTerm: string;
-  onSearchChange: (value: string) => void;
   selectedBox: string;
   onBoxChange: (value: string) => void;
-  onAddItem: (name: string, quantity: number, box: string) => void;
   onUpdateQuantity: (id: number, change: number) => void;
   onUpdateQuantityDirect: (id: number, value: number) => void;
   onDelete: (id: number) => void;
-  onReset: () => void;
   totalItems: number;
   totalQuantity: number;
 }
@@ -32,30 +26,14 @@ interface StockListProps {
 const StockList = ({
   items,
   searchTerm,
-  onSearchChange,
   selectedBox,
   onBoxChange,
-  onAddItem,
   onUpdateQuantity,
   onUpdateQuantityDirect,
   onDelete,
-  onReset,
   totalItems,
   totalQuantity,
 }: StockListProps) => {
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemQty, setNewItemQty] = useState(1);
-  const [newItemBox, setNewItemBox] = useState(BOX_OPTIONS[0]);
-  const [showAddForm, setShowAddForm] = useState(false);
-
-  const handleAddItem = () => {
-    if (newItemName.trim()) {
-      onAddItem(newItemName, newItemQty, newItemBox);
-      setNewItemName('');
-      setNewItemQty(1);
-      setShowAddForm(false);
-    }
-  };
 
   const handleExport = () => {
     if (items.length === 0) {
@@ -126,17 +104,6 @@ const StockList = ({
         </Select>
       </div>
 
-      {/* Mobile Search */}
-      <div className="px-4 py-2 md:hidden">
-        <Input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="bg-muted"
-        />
-      </div>
-
       {/* Table Header */}
       <div className="flex items-center gap-3 px-4 py-2 bg-muted/50 text-sm font-medium text-muted-foreground">
         <div className="w-5" />
@@ -185,73 +152,12 @@ const StockList = ({
         )}
       </div>
 
-      {/* Add Item Form */}
-      {showAddForm && (
-        <div className="p-4 bg-muted/50 border-t animate-fade-in">
-          <div className="flex flex-col gap-2">
-            <Input
-              type="text"
-              placeholder="Item name..."
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                value={newItemQty}
-                onChange={(e) => setNewItemQty(parseInt(e.target.value) || 1)}
-                min={1}
-                className="w-20"
-              />
-              <Select value={newItemBox} onValueChange={setNewItemBox}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-60 bg-popover">
-                  {BOX_OPTIONS.map(box => (
-                    <SelectItem key={box} value={box}>{box}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleAddItem} className="flex-1">Add Item</Button>
-              <Button variant="outline" onClick={() => setShowAddForm(false)}>Cancel</Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Bottom Actions */}
-      <div className="p-4 bg-card border-t space-y-2">
-        <Button 
-          className="w-full btn-add"
-          onClick={() => setShowAddForm(true)}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Item
+      <div className="p-4 bg-card border-t">
+        <Button variant="outline" size="sm" className="w-full" onClick={handleExport}>
+          <Download className="h-4 w-4 mr-1" />
+          Export
         </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1" />
-            Export
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => {
-              if (confirm('Reset all data to factory defaults?')) {
-                onReset();
-              }
-            }}
-          >
-            <RotateCcw className="h-4 w-4 mr-1" />
-            Reset
-          </Button>
-        </div>
       </div>
     </div>
   );

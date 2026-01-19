@@ -1,17 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import { StockItem, Task, UsageEntry } from '@/types/inventory';
+import { StockItem, Task, UsageEntry, Notification } from '@/types/inventory';
 import { loadDefaultInventory } from '@/data/defaultInventory';
 
 const STORAGE_KEYS = {
   STOCK: 'oktoDeckStock',
   TASKS: 'oktoDeckTasks',
   USAGE: 'oktoDeckUsage',
+  NOTIFICATIONS: 'oktoDeckNotifications',
 };
 
 export function useInventory() {
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [usageHistory, setUsageHistory] = useState<UsageEntry[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [deletedItems, setDeletedItems] = useState<{ item: StockItem; index: number }[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBox, setSelectedBox] = useState<string>('');
@@ -21,6 +23,7 @@ export function useInventory() {
     const savedStock = localStorage.getItem(STORAGE_KEYS.STOCK);
     const savedTasks = localStorage.getItem(STORAGE_KEYS.TASKS);
     const savedUsage = localStorage.getItem(STORAGE_KEYS.USAGE);
+    const savedNotifications = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
 
     if (savedStock) {
       try {
@@ -47,6 +50,14 @@ export function useInventory() {
         setUsageHistory([]);
       }
     }
+
+    if (savedNotifications) {
+      try {
+        setNotifications(JSON.parse(savedNotifications));
+      } catch {
+        setNotifications([]);
+      }
+    }
   }, []);
 
   // Save stock data
@@ -62,6 +73,33 @@ export function useInventory() {
   // Save usage data
   const saveUsageData = useCallback((usage: UsageEntry[]) => {
     localStorage.setItem(STORAGE_KEYS.USAGE, JSON.stringify(usage));
+  }, []);
+
+  // Save notifications
+  const saveNotifications = useCallback((notifs: Notification[]) => {
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifs));
+  }, []);
+
+  // Add notification
+  const addNotification = useCallback((type: Notification['type'], itemName: string, message: string) => {
+    const newNotification: Notification = {
+      id: Date.now(),
+      type,
+      itemName,
+      message,
+      timestamp: new Date().toISOString(),
+    };
+    setNotifications(prev => {
+      const updated = [newNotification, ...prev].slice(0, 50); // Keep last 50
+      saveNotifications(updated);
+      return updated;
+    });
+  }, [saveNotifications]);
+
+  // Clear notifications
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
   }, []);
 
   // Add stock item
@@ -89,7 +127,8 @@ export function useInventory() {
       return updated;
     });
     setDeletedItems([]);
-  }, [saveStockData]);
+    addNotification('added', name.trim(), `Added "${name.trim()}" (${quantity}) to ${box}`);
+  }, [saveStockData, addNotification]);
 
   // Update stock quantity
   const updateStockQuantity = useCallback((id: number, change: number) => {
@@ -162,13 +201,14 @@ export function useInventory() {
       if (itemIndex !== -1) {
         const deletedItem = prev[itemIndex];
         setDeletedItems([{ item: deletedItem, index: itemIndex }]);
+        addNotification('deleted', deletedItem.name, `Removed "${deletedItem.name}" from ${deletedItem.box}`);
         const updated = prev.filter(i => i.id !== id);
         saveStockData(updated);
         return updated;
       }
       return prev;
     });
-  }, [saveStockData]);
+  }, [saveStockData, addNotification]);
 
   // Undo delete
   const undoDelete = useCallback(() => {
@@ -216,9 +256,11 @@ export function useInventory() {
     localStorage.removeItem(STORAGE_KEYS.STOCK);
     localStorage.removeItem(STORAGE_KEYS.TASKS);
     localStorage.removeItem(STORAGE_KEYS.USAGE);
+    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
     setStockItems(loadDefaultInventory());
     setTasks([]);
     setUsageHistory([]);
+    setNotifications([]);
     setDeletedItems([]);
   }, []);
 
@@ -273,6 +315,7 @@ export function useInventory() {
     filteredItems,
     tasks,
     usageHistory,
+    notifications,
     deletedItems,
     searchTerm,
     setSearchTerm,
@@ -294,5 +337,6 @@ export function useInventory() {
     deleteTask,
     resetApp,
     getMonthlyUsage,
+    clearNotifications,
   };
 }

@@ -16,6 +16,7 @@ const Index = () => {
     filteredItems,
     tasks,
     deletedItems,
+    notifications,
     searchTerm,
     setSearchTerm,
     selectedBox,
@@ -34,8 +35,8 @@ const Index = () => {
     addTask,
     toggleTask,
     deleteTask,
-    resetApp,
     getMonthlyUsage,
+    clearNotifications,
   } = useInventory();
 
   const handleBoxChange = (value: string) => {
@@ -46,11 +47,12 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <Header
-        totalItems={totalItems}
-        totalQuantity={totalQuantity}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onMenuClick={() => setSidebarOpen(true)}
+        onAddItem={addStockItem}
+        notifications={notifications}
+        onClearNotifications={clearNotifications}
       />
 
       <div className="flex flex-1 relative">
@@ -70,14 +72,11 @@ const Index = () => {
               <StockList
                 items={filteredItems}
                 searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
                 selectedBox={selectedBox}
                 onBoxChange={handleBoxChange}
-                onAddItem={addStockItem}
                 onUpdateQuantity={updateStockQuantity}
                 onUpdateQuantityDirect={updateStockQuantityDirect}
                 onDelete={deleteStockItem}
-                onReset={resetApp}
                 totalItems={totalItems}
                 totalQuantity={totalQuantity}
               />
