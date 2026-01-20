@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Bell, Menu, Trash2 } from 'lucide-react';
 import OktoLogo from './OktoLogo';
+import ThemeToggle from './ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -60,8 +61,10 @@ const Header = ({
           </div>
         </div>
 
-        {/* Right: Search & Notifications */}
-        <div className="flex items-center gap-2">
+        {/* Right: Theme, Search & Notifications */}
+        <div className="flex items-center gap-1">
+          {/* Theme Toggle */}
+          <ThemeToggle />
           {/* Search Popover */}
           <Popover open={showSearch} onOpenChange={setShowSearch}>
             <PopoverTrigger asChild>
