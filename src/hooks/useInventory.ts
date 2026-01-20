@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   TASKS: 'oktoDeckTasks',
   USAGE: 'oktoDeckUsage',
   NOTIFICATIONS: 'oktoDeckNotifications',
+  CUSTOM_BOXES: 'oktoDeckCustomBoxes',
 };
 
 export function useInventory() {
@@ -15,6 +16,7 @@ export function useInventory() {
   const [usageHistory, setUsageHistory] = useState<UsageEntry[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [deletedItems, setDeletedItems] = useState<{ item: StockItem; index: number }[]>([]);
+  const [customBoxes, setCustomBoxes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBox, setSelectedBox] = useState<string>('');
 
@@ -58,6 +60,15 @@ export function useInventory() {
         setNotifications([]);
       }
     }
+
+    const savedCustomBoxes = localStorage.getItem(STORAGE_KEYS.CUSTOM_BOXES);
+    if (savedCustomBoxes) {
+      try {
+        setCustomBoxes(JSON.parse(savedCustomBoxes));
+      } catch {
+        setCustomBoxes([]);
+      }
+    }
   }, []);
 
   // Save stock data
@@ -79,6 +90,21 @@ export function useInventory() {
   const saveNotifications = useCallback((notifs: Notification[]) => {
     localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifs));
   }, []);
+
+  // Save custom boxes
+  const saveCustomBoxes = useCallback((boxes: string[]) => {
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_BOXES, JSON.stringify(boxes));
+  }, []);
+
+  // Add custom box
+  const addCustomBox = useCallback((boxName: string) => {
+    setCustomBoxes(prev => {
+      if (prev.includes(boxName)) return prev;
+      const updated = [...prev, boxName];
+      saveCustomBoxes(updated);
+      return updated;
+    });
+  }, [saveCustomBoxes]);
 
   // Add notification
   const addNotification = useCallback((type: Notification['type'], itemName: string, message: string) => {
@@ -317,6 +343,7 @@ export function useInventory() {
     usageHistory,
     notifications,
     deletedItems,
+    customBoxes,
     searchTerm,
     setSearchTerm,
     selectedBox,
@@ -338,5 +365,6 @@ export function useInventory() {
     resetApp,
     getMonthlyUsage,
     clearNotifications,
+    addCustomBox,
   };
 }
