@@ -4,9 +4,9 @@ import { useInventory } from '@/hooks/useInventory';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import StockList from '@/components/inventory/StockList';
-import TaskList from '@/components/tasks/TaskList';
 import MonthlyReport from '@/components/reports/MonthlyReport';
 import UndoNotification from '@/components/UndoNotification';
+import FloatingAddButton from '@/components/FloatingAddButton';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>('stock');
@@ -14,7 +14,6 @@ const Index = () => {
   
   const {
     filteredItems,
-    tasks,
     deletedItems,
     notifications,
     searchTerm,
@@ -23,18 +22,12 @@ const Index = () => {
     setSelectedBox,
     totalItems,
     totalQuantity,
-    totalTasks,
-    completedTasks,
-    progressPercent,
     availableMonths,
     addStockItem,
     updateStockQuantity,
     updateStockQuantityDirect,
     deleteStockItem,
     undoDelete,
-    addTask,
-    toggleTask,
-    deleteTask,
     getMonthlyUsage,
     clearNotifications,
   } = useInventory();
@@ -50,7 +43,6 @@ const Index = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onMenuClick={() => setSidebarOpen(true)}
-        onAddItem={addStockItem}
         notifications={notifications}
         onClearNotifications={clearNotifications}
       />
@@ -82,18 +74,6 @@ const Index = () => {
               />
             )}
 
-            {activeTab === 'tasks' && (
-              <TaskList
-                tasks={tasks}
-                totalTasks={totalTasks}
-                completedTasks={completedTasks}
-                progressPercent={progressPercent}
-                onAddTask={addTask}
-                onToggleTask={toggleTask}
-                onDeleteTask={deleteTask}
-              />
-            )}
-
             {activeTab === 'reports' && (
               <MonthlyReport
                 availableMonths={availableMonths}
@@ -103,6 +83,9 @@ const Index = () => {
           </div>
         </main>
       </div>
+
+      {/* Floating Add Button */}
+      <FloatingAddButton onAddItem={addStockItem} />
 
       {/* Undo Notification */}
       <UndoNotification

@@ -1,4 +1,4 @@
-import { Home, CheckSquare, BarChart3 } from 'lucide-react';
+import { Home, BarChart3 } from 'lucide-react';
 import { TabType } from '@/types/inventory';
 import { cn } from '@/lib/utils';
 
@@ -11,7 +11,6 @@ interface SidebarProps {
 
 const tabs = [
   { id: 'stock' as TabType, label: 'Stock Take', icon: Home },
-  { id: 'tasks' as TabType, label: 'Work List', icon: CheckSquare },
   { id: 'reports' as TabType, label: 'Monthly Report', icon: BarChart3 },
 ];
 

@@ -1,28 +1,20 @@
 import { useState } from 'react';
-import { Search, Bell, Menu, Plus, X, Trash2 } from 'lucide-react';
+import { Search, Bell, Menu, Trash2 } from 'lucide-react';
 import OktoLogo from './OktoLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Notification, BOX_OPTIONS } from '@/types/inventory';
+import { Notification } from '@/types/inventory';
 
 interface HeaderProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   onMenuClick?: () => void;
-  onAddItem: (name: string, quantity: number, box: string) => void;
   notifications: Notification[];
   onClearNotifications: () => void;
 }
@@ -31,24 +23,10 @@ const Header = ({
   searchTerm, 
   onSearchChange, 
   onMenuClick,
-  onAddItem,
   notifications,
   onClearNotifications,
 }: HeaderProps) => {
   const [showSearch, setShowSearch] = useState(false);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemQty, setNewItemQty] = useState(1);
-  const [newItemBox, setNewItemBox] = useState(BOX_OPTIONS[0]);
-
-  const handleAddItem = () => {
-    if (newItemName.trim()) {
-      onAddItem(newItemName, newItemQty, newItemBox);
-      setNewItemName('');
-      setNewItemQty(1);
-      setShowAddForm(false);
-    }
-  };
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -78,7 +56,7 @@ const Header = ({
           </Button>
           <div className="flex items-center gap-2">
             <OktoLogo className="w-8 h-8 text-primary-foreground" />
-            <span className="text-xl font-bold tracking-tight">DECK INVENTORY</span>
+            <span className="text-xl font-bold tracking-tight">OKTO DECK</span>
           </div>
         </div>
 
@@ -169,64 +147,11 @@ const Header = ({
         </div>
       </div>
 
-      {/* Add Item Form */}
-      <div className="px-4 pb-3 md:px-6">
-        {!showAddForm ? (
-          <Button 
-            className="w-full btn-add"
-            onClick={() => setShowAddForm(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Item
-          </Button>
-        ) : (
-          <div className="bg-white/10 rounded-lg p-3 animate-fade-in">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">New Item</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 text-primary-foreground hover:bg-white/20"
-                onClick={() => setShowAddForm(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Input
-                type="text"
-                placeholder="Item name..."
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
-                className="bg-white text-foreground"
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  value={newItemQty}
-                  onChange={(e) => setNewItemQty(parseInt(e.target.value) || 1)}
-                  min={1}
-                  className="w-20 bg-white text-foreground"
-                />
-                <Select value={newItemBox} onValueChange={setNewItemBox}>
-                  <SelectTrigger className="flex-1 bg-white text-foreground">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 bg-popover">
-                    {BOX_OPTIONS.map(box => (
-                      <SelectItem key={box} value={box}>{box}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleAddItem} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                Add Item
-              </Button>
-            </div>
-          </div>
-        )}
+      {/* Slogan */}
+      <div className="px-4 pb-3 md:px-6 md:ml-16">
+        <p className="text-sm text-primary-foreground/80 italic">
+          Precision Inventory for Optimal Yacht Operations
+        </p>
       </div>
     </header>
   );
