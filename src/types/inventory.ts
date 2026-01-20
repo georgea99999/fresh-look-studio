@@ -26,7 +26,7 @@ export interface Notification {
   timestamp: string;
 }
 
-export type TabType = 'stock' | 'tasks' | 'reports';
+export type TabType = 'stock' | 'reports';
 
 export const BOX_OPTIONS = [
   "BOX BS1", "BOX BS2", "BOX BS3", "BOX BS4", "BOX BS5 & BS5+", "BOX BS6",

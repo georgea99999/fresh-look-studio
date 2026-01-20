@@ -6,28 +6,22 @@ const OktoLogo = ({ className = "w-8 h-8" }: { className?: string }) => {
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Octagonal flower pattern - 8 petals */}
+      {/* Circular gear/cog-like logo matching reference */}
       <g>
-        {/* Center circle */}
-        <circle cx="50" cy="50" r="14" />
+        {/* Center circle with cutout */}
+        <circle cx="50" cy="50" r="18" />
         
-        {/* 8 petal shapes radiating outward */}
-        {/* Top */}
-        <ellipse cx="50" cy="22" rx="10" ry="16" />
-        {/* Bottom */}
-        <ellipse cx="50" cy="78" rx="10" ry="16" />
-        {/* Left */}
-        <ellipse cx="22" cy="50" rx="16" ry="10" />
-        {/* Right */}
-        <ellipse cx="78" cy="50" rx="16" ry="10" />
-        {/* Top-right */}
-        <ellipse cx="70" cy="30" rx="10" ry="16" transform="rotate(45 70 30)" />
-        {/* Top-left */}
-        <ellipse cx="30" cy="30" rx="10" ry="16" transform="rotate(-45 30 30)" />
-        {/* Bottom-right */}
-        <ellipse cx="70" cy="70" rx="10" ry="16" transform="rotate(-45 70 70)" />
-        {/* Bottom-left */}
-        <ellipse cx="30" cy="70" rx="10" ry="16" transform="rotate(45 30 70)" />
+        {/* 8 rounded petals/spokes radiating outward */}
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+          <ellipse
+            key={i}
+            cx="50"
+            cy="18"
+            rx="12"
+            ry="18"
+            transform={`rotate(${angle} 50 50)`}
+          />
+        ))}
       </g>
     </svg>
   );
