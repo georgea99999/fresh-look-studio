@@ -16,6 +16,7 @@ const Index = () => {
     filteredItems,
     deletedItems,
     notifications,
+    customBoxes,
     searchTerm,
     setSearchTerm,
     selectedBox,
@@ -30,6 +31,7 @@ const Index = () => {
     undoDelete,
     getMonthlyUsage,
     clearNotifications,
+    addCustomBox,
   } = useInventory();
 
   const handleBoxChange = (value: string) => {
@@ -85,7 +87,11 @@ const Index = () => {
       </div>
 
       {/* Floating Add Button */}
-      <FloatingAddButton onAddItem={addStockItem} />
+      <FloatingAddButton 
+        onAddItem={addStockItem} 
+        customBoxes={customBoxes}
+        onAddCustomBox={addCustomBox}
+      />
 
       {/* Undo Notification */}
       <UndoNotification

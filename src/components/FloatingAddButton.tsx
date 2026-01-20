@@ -9,17 +9,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { BOX_OPTIONS } from '@/types/inventory';
 
 interface FloatingAddButtonProps {
   onAddItem: (name: string, quantity: number, box: string) => void;
+  customBoxes: string[];
+  onAddCustomBox: (boxName: string) => void;
 }
 
-const FloatingAddButton = ({ onAddItem }: FloatingAddButtonProps) => {
+const FloatingAddButton = ({ onAddItem, customBoxes, onAddCustomBox }: FloatingAddButtonProps) => {
   const [showForm, setShowForm] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState(1);
   const [newItemBox, setNewItemBox] = useState(BOX_OPTIONS[0]);
+  const [showCreateBoxDialog, setShowCreateBoxDialog] = useState(false);
+  const [newBoxName, setNewBoxName] = useState('');
+
+  const allBoxOptions = [...BOX_OPTIONS, ...customBoxes];
 
   const handleAddItem = () => {
     if (newItemName.trim()) {
@@ -27,6 +41,23 @@ const FloatingAddButton = ({ onAddItem }: FloatingAddButtonProps) => {
       setNewItemName('');
       setNewItemQty(1);
       setShowForm(false);
+    }
+  };
+
+  const handleCreateBox = () => {
+    if (newBoxName.trim()) {
+      onAddCustomBox(newBoxName.trim());
+      setNewItemBox(newBoxName.trim());
+      setNewBoxName('');
+      setShowCreateBoxDialog(false);
+    }
+  };
+
+  const handleBoxChange = (value: string) => {
+    if (value === '__create_new__') {
+      setShowCreateBoxDialog(true);
+    } else {
+      setNewItemBox(value);
     }
   };
 
@@ -79,14 +110,18 @@ const FloatingAddButton = ({ onAddItem }: FloatingAddButtonProps) => {
                   min={1}
                   className="w-20"
                 />
-                <Select value={newItemBox} onValueChange={setNewItemBox}>
+                <Select value={newItemBox} onValueChange={handleBoxChange}>
                   <SelectTrigger className="flex-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="max-h-60 bg-popover">
-                    {BOX_OPTIONS.map(box => (
+                    {allBoxOptions.map(box => (
                       <SelectItem key={box} value={box}>{box}</SelectItem>
                     ))}
+                    <Separator className="my-1" />
+                    <SelectItem value="__create_new__" className="text-accent font-medium">
+                      + Create New Box
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -97,6 +132,33 @@ const FloatingAddButton = ({ onAddItem }: FloatingAddButtonProps) => {
           </div>
         )}
       </div>
+
+      {/* Create New Box Dialog */}
+      <Dialog open={showCreateBoxDialog} onOpenChange={setShowCreateBoxDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Box</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              type="text"
+              placeholder="Enter box name..."
+              value={newBoxName}
+              onChange={(e) => setNewBoxName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateBox()}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateBoxDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateBox} disabled={!newBoxName.trim()}>
+              Create Box
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

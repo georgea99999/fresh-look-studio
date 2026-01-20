@@ -3,25 +3,34 @@ const OktoLogo = ({ className = "w-8 h-8" }: { className?: string }) => {
     <svg
       viewBox="0 0 100 100"
       className={className}
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Circular gear/cog-like logo matching reference */}
+      {/* Hexagonal aperture-style logo */}
       <g>
-        {/* Center circle with cutout */}
-        <circle cx="50" cy="50" r="18" />
+        {/* Outer hexagon */}
+        <polygon 
+          points="50,5 93,27.5 93,72.5 50,95 7,72.5 7,27.5" 
+          strokeWidth="3"
+          fill="none"
+        />
         
-        {/* 8 rounded petals/spokes radiating outward */}
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
-          <ellipse
-            key={i}
-            cx="50"
-            cy="18"
-            rx="12"
-            ry="18"
-            transform={`rotate(${angle} 50 50)`}
-          />
-        ))}
+        {/* Inner triangular aperture blades creating the swirl effect */}
+        <polygon points="50,20 35,45 50,38" fill="currentColor" stroke="none" />
+        <polygon points="75,30 50,38 65,50" fill="currentColor" stroke="none" />
+        <polygon points="75,70 65,50 50,62" fill="currentColor" stroke="none" />
+        <polygon points="50,80 50,62 35,55" fill="currentColor" stroke="none" />
+        <polygon points="25,70 35,55 22,50" fill="currentColor" stroke="none" />
+        <polygon points="25,30 22,50 35,45" fill="currentColor" stroke="none" />
+        
+        {/* Center hexagonal void */}
+        <polygon 
+          points="50,38 65,50 50,62 35,55 22,50 35,45" 
+          fill="none"
+          strokeWidth="2"
+        />
       </g>
     </svg>
   );

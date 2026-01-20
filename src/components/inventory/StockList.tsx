@@ -105,12 +105,12 @@ const StockList = ({
       </div>
 
       {/* Table Header */}
-      <div className="flex items-center gap-3 px-4 py-2 bg-muted/50 text-sm font-medium text-muted-foreground">
-        <div className="w-5" />
-        <div className="w-10" />
-        <div className="flex-1">Name</div>
-        <div className="w-32 text-center">Quantity</div>
-        <div className="w-8 text-center">Actions</div>
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 text-sm font-medium text-muted-foreground">
+        <div className="w-4 flex-shrink-0" />
+        <div className="w-8 flex-shrink-0" />
+        <div className="flex-1 min-w-0">Name</div>
+        <div className="w-24 text-center flex-shrink-0">Qty</div>
+        <div className="w-7 flex-shrink-0" />
       </div>
 
       {/* Items List */}
