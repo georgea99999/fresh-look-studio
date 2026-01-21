@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Bell, Menu, Trash2 } from 'lucide-react';
-import OktoLogo from './OktoLogo';
+import oktoLogo from '@/assets/okto-logo.webp';
 import ThemeToggle from './ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,7 @@ const Header = ({
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <OktoLogo className="w-8 h-8 text-primary-foreground" />
+            <img src={oktoLogo} alt="YachtCount Logo" className="w-8 h-8" />
             <span className="text-xl font-bold tracking-tight">YachtCount</span>
           </div>
         </div>
@@ -153,7 +153,7 @@ const Header = ({
       {/* Slogan */}
       <div className="px-4 pb-3 md:px-6 md:ml-16">
         <p className="text-sm text-primary-foreground/80 italic">
-          Precision counting done right
+          Professional Inventory Systems for Maritime Excellence.
         </p>
       </div>
     </header>

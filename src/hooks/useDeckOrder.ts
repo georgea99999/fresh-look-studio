@@ -29,6 +29,7 @@ export function useDeckOrder() {
       const newItem: DeckOrderItem = {
         ...item,
         id: Date.now(),
+        link: item.link || '',
       };
       const updated = [...prev, newItem];
       saveOrderItems(updated);
