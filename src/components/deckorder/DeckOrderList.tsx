@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Download, Trash2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Plus, Download, Trash2, ChevronDown, ChevronUp, ExternalLink, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,9 +9,10 @@ interface DeckOrderListProps {
   items: DeckOrderItem[];
   onAddItem: (item: Omit<DeckOrderItem, 'id'>) => void;
   onDeleteItem: (id: number) => void;
+  onClearAll: () => void;
 }
 
-const DeckOrderList = ({ items, onAddItem, onDeleteItem }: DeckOrderListProps) => {
+const DeckOrderList = ({ items, onAddItem, onDeleteItem, onClearAll }: DeckOrderListProps) => {
   const [isAdding, setIsAdding] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [newItem, setNewItem] = useState({
@@ -118,6 +119,17 @@ const DeckOrderList = ({ items, onAddItem, onDeleteItem }: DeckOrderListProps) =
             </p>
           </div>
           <div className="flex gap-2">
+            {items.length > 0 && (
+              <Button
+                onClick={onClearAll}
+                size="sm"
+                variant="outline"
+                className="gap-1 text-destructive hover:text-destructive"
+              >
+                <XCircle className="h-4 w-4" />
+                Clear All
+              </Button>
+            )}
             <Button
               onClick={() => setIsAdding(true)}
               size="sm"

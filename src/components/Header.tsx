@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Bell, Menu, Trash2 } from 'lucide-react';
-import oktoLogo from '@/assets/okto-logo.webp';
+import oktoLogo from '@/assets/okto-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
