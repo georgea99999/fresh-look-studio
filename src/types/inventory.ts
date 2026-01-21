@@ -31,9 +31,10 @@ export type TabType = 'stock' | 'deckOrder' | 'reports';
 export interface DeckOrderItem {
   id: number;
   productName: string;
-  quantity: number;
+  quantity: string;
   colour: string;
   size: string;
+  link: string;
 }
 
 export const BOX_OPTIONS = [
