@@ -236,12 +236,15 @@ export function useInventory() {
     });
   }, [saveStockData, addNotification]);
 
-  // Undo delete
+  // Undo delete - restore item to original position
   const undoDelete = useCallback(() => {
     if (deletedItems.length > 0) {
       const restored = deletedItems[0];
       setStockItems(prev => {
-        const updated = [...prev, restored.item];
+        const updated = [...prev];
+        // Insert at original index, clamped to array bounds
+        const insertIndex = Math.min(restored.index, updated.length);
+        updated.splice(insertIndex, 0, restored.item);
         saveStockData(updated);
         return updated;
       });

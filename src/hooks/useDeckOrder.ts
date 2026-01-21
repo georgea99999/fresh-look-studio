@@ -1,0 +1,60 @@
+import { useState, useEffect, useCallback } from 'react';
+import { DeckOrderItem } from '@/types/inventory';
+
+const STORAGE_KEY = 'yachtCountDeckOrder';
+
+export function useDeckOrder() {
+  const [orderItems, setOrderItems] = useState<DeckOrderItem[]>([]);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        setOrderItems(JSON.parse(saved));
+      } catch {
+        setOrderItems([]);
+      }
+    }
+  }, []);
+
+  // Save to localStorage
+  const saveOrderItems = useCallback((items: DeckOrderItem[]) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }, []);
+
+  // Add item
+  const addOrderItem = useCallback((item: Omit<DeckOrderItem, 'id'>) => {
+    setOrderItems(prev => {
+      const newItem: DeckOrderItem = {
+        ...item,
+        id: Date.now(),
+      };
+      const updated = [...prev, newItem];
+      saveOrderItems(updated);
+      return updated;
+    });
+  }, [saveOrderItems]);
+
+  // Delete item
+  const deleteOrderItem = useCallback((id: number) => {
+    setOrderItems(prev => {
+      const updated = prev.filter(item => item.id !== id);
+      saveOrderItems(updated);
+      return updated;
+    });
+  }, [saveOrderItems]);
+
+  // Clear all items
+  const clearOrderItems = useCallback(() => {
+    setOrderItems([]);
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
+
+  return {
+    orderItems,
+    addOrderItem,
+    deleteOrderItem,
+    clearOrderItems,
+  };
+}
