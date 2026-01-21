@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { TabType } from '@/types/inventory';
 import { useInventory } from '@/hooks/useInventory';
+import { useDeckOrder } from '@/hooks/useDeckOrder';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import StockList from '@/components/inventory/StockList';
 import MonthlyReport from '@/components/reports/MonthlyReport';
+import DeckOrderList from '@/components/deckorder/DeckOrderList';
 import UndoNotification from '@/components/UndoNotification';
 import FloatingAddButton from '@/components/FloatingAddButton';
 
@@ -33,6 +35,12 @@ const Index = () => {
     clearNotifications,
     addCustomBox,
   } = useInventory();
+
+  const {
+    orderItems,
+    addOrderItem,
+    deleteOrderItem,
+  } = useDeckOrder();
 
   const handleBoxChange = (value: string) => {
     setSelectedBox(value === 'all' ? '' : value);
@@ -76,6 +84,14 @@ const Index = () => {
               />
             )}
 
+            {activeTab === 'deckOrder' && (
+              <DeckOrderList
+                items={orderItems}
+                onAddItem={addOrderItem}
+                onDeleteItem={deleteOrderItem}
+              />
+            )}
+
             {activeTab === 'reports' && (
               <MonthlyReport
                 availableMonths={availableMonths}
@@ -86,12 +102,14 @@ const Index = () => {
         </main>
       </div>
 
-      {/* Floating Add Button */}
-      <FloatingAddButton 
-        onAddItem={addStockItem} 
-        customBoxes={customBoxes}
-        onAddCustomBox={addCustomBox}
-      />
+      {/* Floating Add Button - only show on stock tab */}
+      {activeTab === 'stock' && (
+        <FloatingAddButton 
+          onAddItem={addStockItem} 
+          customBoxes={customBoxes}
+          onAddCustomBox={addCustomBox}
+        />
+      )}
 
       {/* Undo Notification */}
       <UndoNotification

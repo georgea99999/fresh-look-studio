@@ -57,7 +57,7 @@ const Header = ({
           </Button>
           <div className="flex items-center gap-2">
             <OktoLogo className="w-8 h-8 text-primary-foreground" />
-            <span className="text-xl font-bold tracking-tight">OKTO DECK</span>
+            <span className="text-xl font-bold tracking-tight">YachtCount</span>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ const Header = ({
       {/* Slogan */}
       <div className="px-4 pb-3 md:px-6 md:ml-16">
         <p className="text-sm text-primary-foreground/80 italic">
-          Precision Inventory for Optimal Yacht Operations
+          Precision counting done right
         </p>
       </div>
     </header>
