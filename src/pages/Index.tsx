@@ -40,6 +40,7 @@ const Index = () => {
     orderItems,
     addOrderItem,
     deleteOrderItem,
+    clearOrderItems,
   } = useDeckOrder();
 
   const handleBoxChange = (value: string) => {
@@ -89,6 +90,7 @@ const Index = () => {
                 items={orderItems}
                 onAddItem={addOrderItem}
                 onDeleteItem={deleteOrderItem}
+                onClearAll={clearOrderItems}
               />
             )}
 
