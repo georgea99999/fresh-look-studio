@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Bell, Menu, Trash2 } from 'lucide-react';
-import oktoLogo from '@/assets/okto-logo.png';
+import yachtLogo from '@/assets/yacht-wheel-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,7 @@ const Header = ({
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <img src={oktoLogo} alt="YachtCount Logo" className="w-8 h-8" />
+            <img src={yachtLogo} alt="YachtCount Logo" className="w-8 h-8 invert dark:invert-0" />
             <span className="text-xl font-bold tracking-tight">YachtCount</span>
           </div>
         </div>

@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Filter, Download, Package } from 'lucide-react';
-import { StockItem, BOX_OPTIONS } from '@/types/inventory';
+import { StockItem, BOX_OPTIONS, DeckOrderItem } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import StockItemRow from './StockItem';
+import SendToDeckOrderDialog from './SendToDeckOrderDialog';
 
 interface StockListProps {
   items: StockItem[];
@@ -21,6 +23,7 @@ interface StockListProps {
   onDelete: (id: number) => void;
   totalItems: number;
   totalQuantity: number;
+  onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
 }
 
 const StockList = ({
@@ -33,7 +36,10 @@ const StockList = ({
   onDelete,
   totalItems,
   totalQuantity,
+  onSendToDeckOrder,
 }: StockListProps) => {
+  const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleExport = () => {
     if (items.length === 0) {
@@ -50,6 +56,19 @@ const StockList = ({
     a.href = url;
     a.download = `OKTO-DECK-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
+  };
+
+  const handleSelectForOrder = (id: number) => {
+    const item = items.find(i => i.id === id);
+    if (item) {
+      setSelectedItemForOrder(item);
+      setDialogOpen(true);
+    }
+  };
+
+  const handleConfirmSendToOrder = (orderItem: Omit<DeckOrderItem, 'id'>) => {
+    onSendToDeckOrder?.(orderItem);
+    setSelectedItemForOrder(null);
   };
 
   // Group items by box
@@ -129,6 +148,7 @@ const StockList = ({
               onUpdateQuantity={onUpdateQuantity}
               onUpdateQuantityDirect={onUpdateQuantityDirect}
               onDelete={onDelete}
+              onSelect={handleSelectForOrder}
             />
           ))
         ) : (
@@ -145,6 +165,7 @@ const StockList = ({
                   onUpdateQuantity={onUpdateQuantity}
                   onUpdateQuantityDirect={onUpdateQuantityDirect}
                   onDelete={onDelete}
+                  onSelect={handleSelectForOrder}
                 />
               ))}
             </div>
@@ -159,6 +180,14 @@ const StockList = ({
           Export
         </Button>
       </div>
+
+      {/* Send to Deck Order Dialog */}
+      <SendToDeckOrderDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        item={selectedItemForOrder}
+        onConfirm={handleConfirmSendToOrder}
+      />
     </div>
   );
 };
