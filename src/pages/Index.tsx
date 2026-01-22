@@ -9,6 +9,7 @@ import MonthlyReport from '@/components/reports/MonthlyReport';
 import DeckOrderList from '@/components/deckorder/DeckOrderList';
 import UndoNotification from '@/components/UndoNotification';
 import FloatingAddButton from '@/components/FloatingAddButton';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>('stock');
@@ -39,12 +40,18 @@ const Index = () => {
   const {
     orderItems,
     addOrderItem,
+    updateOrderItem,
     deleteOrderItem,
     clearOrderItems,
   } = useDeckOrder();
 
   const handleBoxChange = (value: string) => {
     setSelectedBox(value === 'all' ? '' : value);
+  };
+
+  const handleSendToDeckOrder = (item: Omit<typeof orderItems[0], 'id'>) => {
+    addOrderItem(item);
+    toast.success(`"${item.productName}" added to Deck Order`);
   };
 
   return (
@@ -82,6 +89,7 @@ const Index = () => {
                 onDelete={deleteStockItem}
                 totalItems={totalItems}
                 totalQuantity={totalQuantity}
+                onSendToDeckOrder={handleSendToDeckOrder}
               />
             )}
 
@@ -89,6 +97,7 @@ const Index = () => {
               <DeckOrderList
                 items={orderItems}
                 onAddItem={addOrderItem}
+                onUpdateItem={updateOrderItem}
                 onDeleteItem={deleteOrderItem}
                 onClearAll={clearOrderItems}
               />

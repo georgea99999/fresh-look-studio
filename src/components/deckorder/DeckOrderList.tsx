@@ -1,20 +1,40 @@
 import { useState } from 'react';
-import { Plus, Download, Trash2, ChevronDown, ChevronUp, ExternalLink, XCircle } from 'lucide-react';
+import { Plus, Download, Trash2, ChevronDown, ChevronUp, ExternalLink, XCircle, Pencil, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DeckOrderItem } from '@/types/inventory';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface DeckOrderListProps {
   items: DeckOrderItem[];
   onAddItem: (item: Omit<DeckOrderItem, 'id'>) => void;
+  onUpdateItem: (id: number, updates: Partial<Omit<DeckOrderItem, 'id'>>) => void;
   onDeleteItem: (id: number) => void;
   onClearAll: () => void;
 }
 
-const DeckOrderList = ({ items, onAddItem, onDeleteItem, onClearAll }: DeckOrderListProps) => {
+const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAll }: DeckOrderListProps) => {
   const [isAdding, setIsAdding] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({
+    productName: '',
+    quantity: '',
+    colour: '',
+    size: '',
+    link: '',
+  });
   const [newItem, setNewItem] = useState({
     productName: '',
     quantity: '',
@@ -35,6 +55,35 @@ const DeckOrderList = ({ items, onAddItem, onDeleteItem, onClearAll }: DeckOrder
       setNewItem({ productName: '', quantity: '', colour: '', size: '', link: '' });
       setIsAdding(false);
     }
+  };
+
+  const handleStartEdit = (item: DeckOrderItem) => {
+    setEditingId(item.id);
+    setEditForm({
+      productName: item.productName,
+      quantity: item.quantity,
+      colour: item.colour,
+      size: item.size,
+      link: item.link,
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingId && editForm.productName.trim()) {
+      onUpdateItem(editingId, {
+        productName: editForm.productName.trim(),
+        quantity: editForm.quantity.trim() || '1',
+        colour: editForm.colour.trim(),
+        size: editForm.size.trim(),
+        link: editForm.link.trim(),
+      });
+      setEditingId(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm({ productName: '', quantity: '', colour: '', size: '', link: '' });
   };
 
   const handleDownloadPDF = () => {
@@ -120,15 +169,33 @@ const DeckOrderList = ({ items, onAddItem, onDeleteItem, onClearAll }: DeckOrder
           </div>
           <div className="flex gap-2">
             {items.length > 0 && (
-              <Button
-                onClick={onClearAll}
-                size="sm"
-                variant="outline"
-                className="gap-1 text-destructive hover:text-destructive"
-              >
-                <XCircle className="h-4 w-4" />
-                Clear All
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 text-destructive hover:text-destructive"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Clear All
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete all {items.length} items from your deck order.
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Yes, Clear All
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             <Button
               onClick={() => setIsAdding(true)}
@@ -186,13 +253,13 @@ const DeckOrderList = ({ items, onAddItem, onDeleteItem, onClearAll }: DeckOrder
       )}
 
       {/* Table Header */}
-      <div className="grid grid-cols-12 gap-1 px-3 py-2 bg-primary text-primary-foreground text-sm font-medium">
-        <div className="col-span-4">Product</div>
+      <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium">
+        <div className="col-span-3">Product</div>
         <div className="col-span-2">Colour</div>
         <div className="col-span-1">Size</div>
         <div className="col-span-2">Qty</div>
         <div className="col-span-2">Link</div>
-        <div className="col-span-1 text-center flex-shrink-0">Action</div>
+        <div className="col-span-2 text-center">Actions</div>
       </div>
 
       {/* Items List */}
@@ -207,11 +274,58 @@ const DeckOrderList = ({ items, onAddItem, onDeleteItem, onClearAll }: DeckOrder
             {items.map((item) => {
               const hasLongName = isLongName(item.productName);
               const isExpanded = expandedId === item.id;
+              const isEditing = editingId === item.id;
               
+              if (isEditing) {
+                return (
+                  <div key={item.id} className="p-4 bg-accent/20">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+                      <Input
+                        placeholder="Product Name *"
+                        value={editForm.productName}
+                        onChange={(e) => setEditForm({ ...editForm, productName: e.target.value })}
+                        autoFocus
+                      />
+                      <Input
+                        placeholder="Colour"
+                        value={editForm.colour}
+                        onChange={(e) => setEditForm({ ...editForm, colour: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Size"
+                        value={editForm.size}
+                        onChange={(e) => setEditForm({ ...editForm, size: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Quantity (e.g. 10 packs)"
+                        value={editForm.quantity}
+                        onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Link (optional)"
+                        value={editForm.link}
+                        onChange={(e) => setEditForm({ ...editForm, link: e.target.value })}
+                        className="md:col-span-2"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" size="sm" onClick={handleCancelEdit}>
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                      <Button size="sm" onClick={handleSaveEdit} disabled={!editForm.productName.trim()}>
+                        <Check className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div key={item.id}>
-                  <div className="grid grid-cols-12 gap-1 px-3 py-3 items-center hover:bg-muted/50">
-                    <div className="col-span-4 font-medium min-w-0">
+                  <div className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-muted/50">
+                    <div className="col-span-3 font-medium min-w-0">
                       {hasLongName ? (
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : item.id)}
@@ -246,7 +360,15 @@ const DeckOrderList = ({ items, onAddItem, onDeleteItem, onClearAll }: DeckOrder
                         <span className="text-muted-foreground">-</span>
                       )}
                     </div>
-                    <div className="col-span-1 flex justify-center flex-shrink-0">
+                    <div className="col-span-2 flex justify-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => handleStartEdit(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -259,7 +381,7 @@ const DeckOrderList = ({ items, onAddItem, onDeleteItem, onClearAll }: DeckOrder
                   </div>
                   {/* Expanded name panel */}
                   {hasLongName && isExpanded && (
-                    <div className="px-3 py-2 bg-muted/30 border-t">
+                    <div className="px-4 py-2 bg-muted/30 border-t">
                       <p className="text-sm font-medium break-words">{item.productName}</p>
                     </div>
                   )}

@@ -37,6 +37,17 @@ export function useDeckOrder() {
     });
   }, [saveOrderItems]);
 
+  // Update item
+  const updateOrderItem = useCallback((id: number, updates: Partial<Omit<DeckOrderItem, 'id'>>) => {
+    setOrderItems(prev => {
+      const updated = prev.map(item => 
+        item.id === id ? { ...item, ...updates } : item
+      );
+      saveOrderItems(updated);
+      return updated;
+    });
+  }, [saveOrderItems]);
+
   // Delete item
   const deleteOrderItem = useCallback((id: number) => {
     setOrderItems(prev => {
@@ -55,6 +66,7 @@ export function useDeckOrder() {
   return {
     orderItems,
     addOrderItem,
+    updateOrderItem,
     deleteOrderItem,
     clearOrderItems,
   };
