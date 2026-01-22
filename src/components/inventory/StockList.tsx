@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Filter, Download, Package } from 'lucide-react';
+import { ArrowUpDown, Download, Package } from 'lucide-react';
 import { StockItem, BOX_OPTIONS, DeckOrderItem } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Card, CardContent } from '@/components/ui/card';
 import StockItemRow from './StockItem';
 import SendToDeckOrderDialog from './SendToDeckOrderDialog';
@@ -26,6 +32,8 @@ interface StockListProps {
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
 }
 
+type SortOption = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';
+
 const StockList = ({
   items,
   searchTerm,
@@ -40,6 +48,7 @@ const StockList = ({
 }: StockListProps) => {
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('default');
 
   const handleExport = () => {
     if (items.length === 0) {
@@ -71,8 +80,24 @@ const StockList = ({
     setSelectedItemForOrder(null);
   };
 
+  // Sort items based on selected option
+  const sortedItems = [...items].sort((a, b) => {
+    switch (sortOption) {
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
+      case 'qty-asc':
+        return a.quantity - b.quantity;
+      case 'qty-desc':
+        return b.quantity - a.quantity;
+      default:
+        return 0;
+    }
+  });
+
   // Group items by box
-  const groupedItems = items.reduce((acc, item) => {
+  const groupedItems = sortedItems.reduce((acc, item) => {
     if (!acc[item.box]) {
       acc[item.box] = [];
     }
@@ -100,15 +125,31 @@ const StockList = ({
 
       {/* Filters */}
       <div className="flex items-center gap-2 px-4 py-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="gap-1"
-          onClick={() => onBoxChange('')}
-        >
-          <Filter className="h-4 w-4" />
-          Filter
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1">
+              <ArrowUpDown className="h-4 w-4" />
+              Sort
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="bg-popover">
+            <DropdownMenuItem onClick={() => setSortOption('default')}>
+              Default Order
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortOption('name-asc')}>
+              Name (A-Z)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortOption('name-desc')}>
+              Name (Z-A)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortOption('qty-asc')}>
+              Quantity (Low to High)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortOption('qty-desc')}>
+              Quantity (High to Low)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         
         <Select value={selectedBox} onValueChange={onBoxChange}>
           <SelectTrigger className="flex-1 h-9">
@@ -139,9 +180,21 @@ const StockList = ({
             <Package className="h-12 w-12 mb-3 opacity-50" />
             <p>No items found</p>
           </div>
-        ) : selectedBox || searchTerm ? (
-          // Flat list when filtering
-          items.map(item => (
+        ) : selectedBox && selectedBox !== 'all' ? (
+          // Flat list when filtering by box only
+          sortedItems.map(item => (
+            <StockItemRow
+              key={item.id}
+              item={item}
+              onUpdateQuantity={onUpdateQuantity}
+              onUpdateQuantityDirect={onUpdateQuantityDirect}
+              onDelete={onDelete}
+              onSelect={handleSelectForOrder}
+            />
+          ))
+        ) : searchTerm ? (
+          // Flat list when searching - show results without box grouping
+          sortedItems.map(item => (
             <StockItemRow
               key={item.id}
               item={item}
@@ -152,7 +205,7 @@ const StockList = ({
             />
           ))
         ) : (
-          // Grouped by box
+          // Grouped by box - default view
           Object.entries(groupedItems).map(([box, boxItems]) => (
             <div key={box}>
               <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">

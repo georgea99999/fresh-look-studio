@@ -293,10 +293,19 @@ export function useInventory() {
     setDeletedItems([]);
   }, []);
 
-  // Filter items
+  // Filter items - exact word matching
   const filteredItems = stockItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesBox = !selectedBox || item.box === selectedBox;
+    const matchesBox = !selectedBox || selectedBox === 'all' || item.box === selectedBox;
+    
+    if (!searchTerm.trim()) {
+      return matchesBox;
+    }
+    
+    // Split search term into words and check if item name contains all words
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
+    const itemNameLower = item.name.toLowerCase();
+    const matchesSearch = searchWords.every(word => itemNameLower.includes(word));
+    
     return matchesSearch && matchesBox;
   });
 
