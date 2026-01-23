@@ -154,7 +154,7 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
     }
   };
 
-  const isLongName = (name: string) => name.length > 20;
+  const isLongName = (name: string) => name.length > 10;
 
   return (
     <div className="flex flex-col h-full">
