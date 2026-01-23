@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ArrowUpDown, Download, Package } from 'lucide-react';
 import { StockItem, BOX_OPTIONS, DeckOrderItem } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
@@ -50,21 +50,95 @@ const StockList = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('default');
 
-  const handleExport = () => {
+  const handleExportPDF = () => {
     if (items.length === 0) {
       alert('No items to export');
       return;
     }
-    let csv = 'Item Name,Quantity,Box\n';
-    items.forEach(item => {
-      csv += `"${item.name}",${item.quantity},"${item.box}"\n`;
+
+    const currentDate = new Date().toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
     });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `OKTO-DECK-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
+
+    // Group items by box for the PDF
+    const groupedForPDF = items.reduce((acc, item) => {
+      if (!acc[item.box]) {
+        acc[item.box] = [];
+      }
+      acc[item.box].push(item);
+      return acc;
+    }, {} as Record<string, StockItem[]>);
+
+    // Sort boxes by BOX_OPTIONS order
+    const sortedBoxes = Object.keys(groupedForPDF).sort((a, b) => {
+      const indexA = BOX_OPTIONS.indexOf(a);
+      const indexB = BOX_OPTIONS.indexOf(b);
+      if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Stock Take - ${currentDate}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; }
+          h1 { color: #1a365d; margin-bottom: 5px; }
+          .date { color: #666; margin-bottom: 30px; }
+          .box-section { margin-bottom: 30px; }
+          .box-header { background-color: #e2e8f0; padding: 8px 12px; font-weight: bold; margin-bottom: 0; }
+          table { width: 100%; border-collapse: collapse; margin-top: 0; }
+          th { background-color: #5f8b9a; color: white; padding: 12px 8px; text-align: left; }
+          td { padding: 10px 8px; border-bottom: 1px solid #ddd; }
+          tr:nth-child(even) { background-color: #f9f9f9; }
+          .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <h1>YachtCount - Stock Take</h1>
+        <p class="date">Generated: ${currentDate}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Box</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sortedBoxes.map(box => 
+              groupedForPDF[box].map(item => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.box}</td>
+                  <td>${item.quantity}</td>
+                </tr>
+              `).join('')
+            ).join('')}
+          </tbody>
+        </table>
+        <div class="footer">
+          <p>Total Items: ${items.length} | Total Quantity: ${items.reduce((sum, i) => sum + i.quantity, 0)}</p>
+          <p>Professional Inventory Systems for Maritime Excellence.</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
+    }
   };
 
   const handleSelectForOrder = (id: number) => {
@@ -104,6 +178,18 @@ const StockList = ({
     acc[item.box].push(item);
     return acc;
   }, {} as Record<string, StockItem[]>);
+
+  // Sort boxes by BOX_OPTIONS order (BS1 first, etc.)
+  const sortedBoxEntries = useMemo(() => {
+    return Object.entries(groupedItems).sort(([boxA], [boxB]) => {
+      const indexA = BOX_OPTIONS.indexOf(boxA);
+      const indexB = BOX_OPTIONS.indexOf(boxB);
+      if (indexA === -1 && indexB === -1) return boxA.localeCompare(boxB);
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }, [groupedItems]);
 
   return (
     <div className="flex flex-col h-full">
@@ -205,8 +291,8 @@ const StockList = ({
             />
           ))
         ) : (
-          // Grouped by box - default view
-          Object.entries(groupedItems).map(([box, boxItems]) => (
+          // Grouped by box - default view (sorted by BOX_OPTIONS order)
+          sortedBoxEntries.map(([box, boxItems]) => (
             <div key={box}>
               <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
                 {box}
@@ -228,9 +314,9 @@ const StockList = ({
 
       {/* Bottom Actions */}
       <div className="p-4 bg-card border-t">
-        <Button variant="outline" size="sm" className="w-full" onClick={handleExport}>
+        <Button variant="outline" size="sm" className="w-full" onClick={handleExportPDF}>
           <Download className="h-4 w-4 mr-1" />
-          Export
+          Export as PDF
         </Button>
       </div>
 
