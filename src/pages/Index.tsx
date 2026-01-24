@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TabType } from '@/types/inventory';
 import { useInventory } from '@/hooks/useInventory';
 import { useDeckOrder } from '@/hooks/useDeckOrder';
@@ -9,9 +9,21 @@ import MonthlyReport from '@/components/reports/MonthlyReport';
 import DeckOrderList from '@/components/deckorder/DeckOrderList';
 import UndoNotification from '@/components/UndoNotification';
 import FloatingAddButton from '@/components/FloatingAddButton';
+import SplashScreen from '@/components/SplashScreen';
 import { toast } from 'sonner';
 
+const SPLASH_SHOWN_KEY = 'oktoDeckSplashShown';
+
 const Index = () => {
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash once per session
+    return !sessionStorage.getItem(SPLASH_SHOWN_KEY);
+  });
+  
+  const handleSplashComplete = () => {
+    sessionStorage.setItem(SPLASH_SHOWN_KEY, 'true');
+    setShowSplash(false);
+  };
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
@@ -55,7 +67,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
+      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+      <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <Header
         searchTerm={searchTerm}
@@ -129,6 +143,7 @@ const Index = () => {
         onDismiss={() => {}}
       />
     </div>
+    </>
   );
 };
 
