@@ -44,10 +44,10 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         {/* Welcome text */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-foreground tracking-tight">
-            Welcome to Okto
+            YachtCount
           </h1>
           <p className="text-muted-foreground text-lg">
-            Deck Inventory Management
+            Professional Inventory Systems for Maritime Excellence
           </p>
         </div>
 
