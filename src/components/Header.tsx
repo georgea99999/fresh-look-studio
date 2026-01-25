@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Bell, Menu, Trash2 } from 'lucide-react';
-import tallyLogo from '@/assets/tally-logo.jpeg';
+import tallyLogo from '@/assets/tally-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,7 @@ const Header = ({
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <img src={tallyLogo} alt="YachtCount Logo" className="w-8 h-8 rounded" />
+            <img src={tallyLogo} alt="YachtCount Logo" className="w-8 h-8 object-contain" />
             <span className="text-xl font-bold tracking-tight">YachtCount</span>
           </div>
         </div>
