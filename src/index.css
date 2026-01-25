@@ -17,19 +17,19 @@
     --popover-foreground: 220 40% 13%;
 
     /* Primary: Deep Navy */
-    --primary: 220 50% 18%;
+    --primary: 176 69.3694% 21.7647%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary: Light Blue Accent */
     --secondary: 210 100% 96%;
-    --secondary-foreground: 220 50% 18%;
+    --secondary-foreground: 166 91.3043% 9.0196%;
 
     /* Muted: Soft Gray */
     --muted: 210 20% 96%;
     --muted-foreground: 220 10% 50%;
 
     /* Accent: Bright Blue */
-    --accent: 210 100% 50%;
+    --accent: 179 84.3137% 10%;
     --accent-foreground: 0 0% 100%;
 
     /* Destructive: Warm Red */
