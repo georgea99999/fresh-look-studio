@@ -7,30 +7,30 @@
 @layer base {
   :root {
     /* Core Navy Theme */
-    --background: 0 0% 98%;
-    --foreground: 220 40% 13%;
+    --background: 210 40% 98.0392%;
+    --foreground: 0 0% 25.098%;
 
-    --card: 0 0% 100%;
+    --card: 210 40% 98.0392%;
     --card-foreground: 220 40% 13%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 220 40% 13%;
 
     /* Primary: Deep Navy */
-    --primary: 220 50% 18%;
+    --primary: 145 80.3922% 10%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary: Light Blue Accent */
     --secondary: 210 100% 96%;
-    --secondary-foreground: 220 50% 18%;
+    --secondary-foreground: 145 80.3922% 10%;
 
     /* Muted: Soft Gray */
     --muted: 210 20% 96%;
     --muted-foreground: 220 10% 50%;
 
     /* Accent: Bright Blue */
-    --accent: 210 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 25.098%;
+    --accent-foreground: 0 0% 89.8039%;
 
     /* Destructive: Warm Red */
     --destructive: 0 70% 55%;
