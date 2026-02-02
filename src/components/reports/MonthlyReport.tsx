@@ -33,17 +33,87 @@ const MonthlyReport = ({ availableMonths, getMonthlyUsage }: MonthlyReportProps)
       return;
     }
 
-    let csv = 'Month,Product Name,Box,Units Used\n';
-    usageData.forEach(row => {
-      csv += `"${selectedMonth}","${row.itemName}","${row.box}",${row.quantity}\n`;
+    const currentDate = new Date().toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
     });
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `OKTO-Usage-${selectedMonth}.csv`;
-    a.click();
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Monthly Usage Report - ${formatMonth(selectedMonth)}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; }
+          h1 { color: #1a365d; margin-bottom: 5px; }
+          .date { color: #666; margin-bottom: 30px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th { background-color: #5f8b9a; color: white; padding: 12px 8px; text-align: left; }
+          td { padding: 10px 8px; border-bottom: 1px solid #ddd; }
+          tr:nth-child(even) { background-color: #f9f9f9; }
+          .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
+          .action-btns {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+          }
+          .back-btn { 
+            padding: 10px 20px; 
+            background: #5f8b9a; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer;
+            font-size: 14px;
+          }
+          .back-btn:hover { background: #4a7585; }
+          @media print { 
+            .action-btns { display: none; } 
+          }
+        </style>
+      </head>
+      <body>
+        <div class="action-btns">
+          <button class="back-btn" onclick="window.print()">🖨️ Print / Save PDF</button>
+          <button class="back-btn" onclick="window.close()">✕ Close</button>
+        </div>
+        <h1>YachtCount - Monthly Usage Report</h1>
+        <p class="date">${formatMonth(selectedMonth)} | Generated: ${currentDate}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Box</th>
+              <th style="text-align: right;">Units Used</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${usageData.map(row => `
+              <tr>
+                <td>${row.itemName}</td>
+                <td>${row.box}</td>
+                <td style="text-align: right; font-weight: 600;">${row.quantity}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <div class="footer">
+          <p>Total Products: ${usageData.length} | Total Units Used: ${usageData.reduce((sum, r) => sum + r.quantity, 0)}</p>
+          <p>Professional Inventory Systems for Maritime Excellence.</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }
   };
 
   const formatMonth = (monthKey: string) => {
