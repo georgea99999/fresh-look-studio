@@ -14,7 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      custom_boxes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      stock_items: {
+        Row: {
+          box: string
+          created_at: string
+          id: string
+          name: string
+          quantity: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          box: string
+          created_at?: string
+          id?: string
+          name: string
+          quantity?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          box?: string
+          created_at?: string
+          id?: string
+          name?: string
+          quantity?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      usage_history: {
+        Row: {
+          box: string
+          id: string
+          item_name: string
+          quantity: number
+          recorded_at: string
+        }
+        Insert: {
+          box: string
+          id?: string
+          item_name: string
+          quantity: number
+          recorded_at?: string
+        }
+        Update: {
+          box?: string
+          id?: string
+          item_name?: string
+          quantity?: number
+          recorded_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
