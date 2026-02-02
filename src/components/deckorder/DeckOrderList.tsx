@@ -108,9 +108,38 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
           tr:nth-child(even) { background-color: #f9f9f9; }
           .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
           a { color: #5f8b9a; }
+          .back-btn { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            padding: 10px 20px; 
+            background: #5f8b9a; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 1000;
+          }
+          .back-btn:hover { background: #4a7585; }
+          .action-btns {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+          }
+          @media print { 
+            .action-btns { display: none; } 
+          }
         </style>
       </head>
       <body>
+        <div class="action-btns">
+          <button class="back-btn" onclick="window.print()">🖨️ Print / Save PDF</button>
+          <button class="back-btn" onclick="window.close()">✕ Close</button>
+        </div>
         <h1>YachtCount - Deck Order</h1>
         <p class="date">Generated: ${currentDate}</p>
         <table>
@@ -147,10 +176,6 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
     if (printWindow) {
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => {
-        printWindow.print();
-      }, 250);
     }
   };
 
