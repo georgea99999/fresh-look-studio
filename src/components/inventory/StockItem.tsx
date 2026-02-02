@@ -8,11 +8,11 @@ import { cn } from '@/lib/utils';
 
 interface StockItemProps {
   item: StockItemType;
-  onUpdateQuantity: (id: number, change: number) => void;
-  onUpdateQuantityDirect: (id: number, value: number) => void;
-  onDelete: (id: number) => void;
+  onUpdateQuantity: (id: string, change: number) => void;
+  onUpdateQuantityDirect: (id: string, value: number) => void;
+  onDelete: (id: string) => void;
   isSelected?: boolean;
-  onSelect?: (id: number) => void;
+  onSelect?: (id: string) => void;
 }
 
 const StockItemRow = ({ 

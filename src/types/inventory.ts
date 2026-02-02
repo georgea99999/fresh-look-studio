@@ -1,5 +1,5 @@
 export interface StockItem {
-  id: number;
+  id: string;
   name: string;
   quantity: number;
   box: string;

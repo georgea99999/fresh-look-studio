@@ -24,9 +24,9 @@ interface StockListProps {
   searchTerm: string;
   selectedBox: string;
   onBoxChange: (value: string) => void;
-  onUpdateQuantity: (id: number, change: number) => void;
-  onUpdateQuantityDirect: (id: number, value: number) => void;
-  onDelete: (id: number) => void;
+  onUpdateQuantity: (id: string, change: number) => void;
+  onUpdateQuantityDirect: (id: string, value: number) => void;
+  onDelete: (id: string) => void;
   totalItems: number;
   totalQuantity: number;
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
@@ -141,7 +141,7 @@ const StockList = ({
     }
   };
 
-  const handleSelectForOrder = (id: number) => {
+  const handleSelectForOrder = (id: string) => {
     const item = items.find(i => i.id === id);
     if (item) {
       setSelectedItemForOrder(item);

@@ -44,7 +44,7 @@ export function loadDefaultInventory(): StockItem[] {
   Object.entries(inventoryByBox).forEach(([box, boxItems]) => {
     boxItems.forEach(item => {
       items.push({
-        id: Date.now() + Math.random(),
+        id: crypto.randomUUID(),
         name: item[0],
         quantity: item[1],
         box: box
