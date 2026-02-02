@@ -40,9 +40,9 @@ const Header = ({
           <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2">
-            <img src={tallyLogo} alt="YachtCount Logo" className="w-8 h-8 object-contain" />
-            <span className="font-bold tracking-tight text-2xl font-sans">YachtCount</span>
+          <div className="flex items-end gap-2">
+            <img src={tallyLogo} alt="YachtCount Logo" className="w-10 h-10 object-contain" />
+            <span className="font-bold tracking-tight text-2xl font-sans leading-none">YachtCount</span>
           </div>
         </div>
 
