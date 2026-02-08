@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { StockItem, UsageEntry, Notification } from '@/types/inventory';
 import { supabase } from '@/integrations/supabase/client';
 import { loadDefaultInventory } from '@/data/defaultInventory';
+import { useAuth } from './useAuth';
 
 export function useInventory() {
+  const { user } = useAuth();
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [usageHistory, setUsageHistory] = useState<UsageEntry[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -13,30 +15,29 @@ export function useInventory() {
   const [selectedBox, setSelectedBox] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load data from Supabase on mount
+  // Load data from Supabase on mount or when user changes
   useEffect(() => {
+    if (!user) {
+      setStockItems([]);
+      setUsageHistory([]);
+      setCustomBoxes([]);
+      setIsLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       setIsLoading(true);
       
-      // Load stock items
+      // Load stock items for this user
       const { data: stockData, error: stockError } = await supabase
         .from('stock_items')
         .select('*')
+        .eq('user_id', user.id)
         .order('sort_order', { ascending: true });
 
       if (stockError) {
         console.error('Error loading stock items:', stockError);
-        // Fallback to localStorage if DB fails
-        const savedStock = localStorage.getItem('oktoDeckStock');
-        if (savedStock) {
-          try {
-            setStockItems(JSON.parse(savedStock));
-          } catch {
-            setStockItems(loadDefaultInventory());
-          }
-        } else {
-          setStockItems(loadDefaultInventory());
-        }
+        setStockItems([]);
       } else if (stockData && stockData.length > 0) {
         setStockItems(stockData.map(item => ({
           id: item.id,
@@ -45,14 +46,15 @@ export function useInventory() {
           box: item.box,
         })));
       } else {
-        // No data in DB, seed with default inventory
+        // No data for this user, seed with default inventory
         await seedDefaultInventory();
       }
 
-      // Load usage history
+      // Load usage history for this user
       const { data: usageData, error: usageError } = await supabase
         .from('usage_history')
         .select('*')
+        .eq('user_id', user.id)
         .order('recorded_at', { ascending: false });
 
       if (!usageError && usageData) {
@@ -64,17 +66,18 @@ export function useInventory() {
         })));
       }
 
-      // Load custom boxes
+      // Load custom boxes for this user
       const { data: boxesData, error: boxesError } = await supabase
         .from('custom_boxes')
-        .select('name');
+        .select('name')
+        .eq('user_id', user.id);
 
       if (!boxesError && boxesData) {
         setCustomBoxes(boxesData.map(b => b.name));
       }
 
-      // Load notifications from localStorage (keeping local for now)
-      const savedNotifications = localStorage.getItem('oktoDeckNotifications');
+      // Load notifications from localStorage (user-scoped)
+      const savedNotifications = localStorage.getItem(`notifications_${user.id}`);
       if (savedNotifications) {
         try {
           setNotifications(JSON.parse(savedNotifications));
@@ -88,7 +91,7 @@ export function useInventory() {
 
     loadData();
 
-    // Subscribe to realtime updates
+    // Subscribe to realtime updates for this user
     const channel = supabase
       .channel('stock-items-changes')
       .on(
@@ -97,12 +100,14 @@ export function useInventory() {
           event: '*',
           schema: 'public',
           table: 'stock_items',
+          filter: `user_id=eq.${user.id}`,
         },
         async () => {
           // Reload stock items on any change
           const { data } = await supabase
             .from('stock_items')
             .select('*')
+            .eq('user_id', user.id)
             .order('sort_order', { ascending: true });
           
           if (data) {
@@ -120,16 +125,19 @@ export function useInventory() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   // Seed default inventory to database
   const seedDefaultInventory = async () => {
+    if (!user) return;
+    
     const defaultItems = loadDefaultInventory();
     const itemsToInsert = defaultItems.map((item, index) => ({
       name: item.name,
       quantity: item.quantity,
       box: item.box,
       sort_order: index,
+      user_id: user.id,
     }));
 
     const { data, error } = await supabase
@@ -139,7 +147,7 @@ export function useInventory() {
 
     if (error) {
       console.error('Error seeding inventory:', error);
-      setStockItems(defaultItems);
+      setStockItems([]);
     } else if (data) {
       setStockItems(data.map(item => ({
         id: item.id,
@@ -150,23 +158,25 @@ export function useInventory() {
     }
   };
 
-  // Save notifications to localStorage
+  // Save notifications to localStorage (user-scoped)
   const saveNotifications = useCallback((notifs: Notification[]) => {
-    localStorage.setItem('oktoDeckNotifications', JSON.stringify(notifs));
-  }, []);
+    if (user) {
+      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifs));
+    }
+  }, [user]);
 
   // Add custom box
   const addCustomBox = useCallback(async (boxName: string) => {
-    if (customBoxes.includes(boxName)) return;
+    if (!user || customBoxes.includes(boxName)) return;
     
     const { error } = await supabase
       .from('custom_boxes')
-      .insert({ name: boxName });
+      .insert({ name: boxName, user_id: user.id });
 
     if (!error) {
       setCustomBoxes(prev => [...prev, boxName]);
     }
-  }, [customBoxes]);
+  }, [user, customBoxes]);
 
   // Add notification
   const addNotification = useCallback((type: Notification['type'], itemName: string, message: string) => {
@@ -187,12 +197,14 @@ export function useInventory() {
   // Clear notifications
   const clearNotifications = useCallback(() => {
     setNotifications([]);
-    localStorage.removeItem('oktoDeckNotifications');
-  }, []);
+    if (user) {
+      localStorage.removeItem(`notifications_${user.id}`);
+    }
+  }, [user]);
 
   // Add stock item
   const addStockItem = useCallback(async (name: string, quantity: number, box: string) => {
-    if (!name.trim()) return;
+    if (!user || !name.trim()) return;
 
     // Find the max sort_order for items in the same box
     const boxItems = stockItems.filter(i => i.box === box);
@@ -207,6 +219,7 @@ export function useInventory() {
         quantity,
         box,
         sort_order: maxSortOrder,
+        user_id: user.id,
       })
       .select()
       .single();
@@ -237,7 +250,7 @@ export function useInventory() {
       setDeletedItems([]);
       addNotification('added', name.trim(), `Added "${name.trim()}" (${quantity}) to ${box}`);
     }
-  }, [stockItems, addNotification]);
+  }, [user, stockItems, addNotification]);
 
   // Update stock quantity
   const updateStockQuantity = useCallback(async (id: string, change: number) => {
@@ -258,11 +271,12 @@ export function useInventory() {
     }
 
     // Record usage if quantity decreased
-    if (diff > 0) {
+    if (diff > 0 && user) {
       await supabase.from('usage_history').insert({
         item_name: item.name,
         box: item.box,
         quantity: diff,
+        user_id: user.id,
       });
 
       setUsageHistory(prev => [{
@@ -297,11 +311,12 @@ export function useInventory() {
     }
 
     // Record usage if quantity decreased
-    if (diff > 0) {
+    if (diff > 0 && user) {
       await supabase.from('usage_history').insert({
         item_name: item.name,
         box: item.box,
         quantity: diff,
+        user_id: user.id,
       });
 
       setUsageHistory(prev => [{
@@ -352,6 +367,7 @@ export function useInventory() {
         quantity: restored.item.quantity,
         box: restored.item.box,
         sort_order: restored.index,
+        user_id: user?.id,
       })
       .select()
       .single();
