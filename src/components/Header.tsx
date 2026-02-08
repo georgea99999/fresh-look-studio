@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell, Menu, Trash2, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, Bell, Menu, Trash2 } from 'lucide-react';
 import yachtcountLogo from '@/assets/yachtcount-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Notification } from '@/types/inventory';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 interface HeaderProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -25,17 +22,6 @@ const Header = ({
   onClearNotifications
 }: HeaderProps) => {
   const [showSearch, setShowSearch] = useState(false);
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast.error('Error signing out');
-    } else {
-      navigate('/auth');
-    }
-  };
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleString('en-GB', {
@@ -118,17 +104,6 @@ const Header = ({
               </ScrollArea>
             </PopoverContent>
           </Popover>
-
-          {/* Sign Out Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-primary-foreground hover:bg-sidebar-accent"
-            onClick={handleSignOut}
-            title="Sign out"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 
