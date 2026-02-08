@@ -19,16 +19,19 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -41,6 +44,7 @@ export type Database = {
           quantity: number
           sort_order: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           box: string
@@ -50,6 +54,7 @@ export type Database = {
           quantity?: number
           sort_order?: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           box?: string
@@ -59,6 +64,7 @@ export type Database = {
           quantity?: number
           sort_order?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -69,6 +75,7 @@ export type Database = {
           item_name: string
           quantity: number
           recorded_at: string
+          user_id: string | null
         }
         Insert: {
           box: string
@@ -76,6 +83,7 @@ export type Database = {
           item_name: string
           quantity: number
           recorded_at?: string
+          user_id?: string | null
         }
         Update: {
           box?: string
@@ -83,6 +91,7 @@ export type Database = {
           item_name?: string
           quantity?: number
           recorded_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
