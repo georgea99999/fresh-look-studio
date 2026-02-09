@@ -11,7 +11,11 @@ import UndoNotification from '@/components/UndoNotification';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import { toast } from 'sonner';
 
-const Index = () => {
+interface IndexProps {
+  onLogout?: () => void;
+}
+
+const Index = ({ onLogout }: IndexProps) => {
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
@@ -72,6 +76,7 @@ const Index = () => {
           onTabChange={setActiveTab}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          onLogout={onLogout}
         />
 
         {/* Main Content */}

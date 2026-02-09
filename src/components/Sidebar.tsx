@@ -1,4 +1,4 @@
-import { Home, BarChart3, ClipboardList } from 'lucide-react';
+import { Home, BarChart3, ClipboardList, LogOut } from 'lucide-react';
 import { TabType } from '@/types/inventory';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +7,7 @@ interface SidebarProps {
   onTabChange: (tab: TabType) => void;
   isOpen?: boolean;
   onClose?: () => void;
+  onLogout?: () => void;
 }
 
 const tabs = [
@@ -15,7 +16,7 @@ const tabs = [
   { id: 'reports' as TabType, label: 'Monthly Report', icon: BarChart3 },
 ];
 
-const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: SidebarProps) => {
+const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose, onLogout }: SidebarProps) => {
   return (
     <>
       {/* Mobile overlay */}
@@ -75,6 +76,21 @@ const Sidebar = ({ activeTab, onTabChange, isOpen = true, onClose }: SidebarProp
             </button>
           );
         })}
+        
+        {/* Logout button at bottom */}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="mt-auto mb-6 flex flex-col items-center py-4 transition-all duration-200 group"
+          >
+            <div className="p-2 rounded-lg transition-colors text-primary-foreground/70 group-hover:text-primary-foreground">
+              <LogOut className="h-5 w-5" />
+            </div>
+            <span className="vertical-text text-xs font-medium mt-2 tracking-wide text-primary-foreground/70 group-hover:text-primary-foreground">
+              Logout
+            </span>
+          </button>
+        )}
       </aside>
     </>
   );
