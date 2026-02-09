@@ -107,12 +107,6 @@ const Header = ({
             </PopoverContent>
           </Popover>
 
-          {/* Mobile Logout */}
-          {onLogout && (
-            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button>
-          )}
         </div>
       </div>
 
