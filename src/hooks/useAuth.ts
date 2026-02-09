@@ -4,7 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 
 const SHARED_EMAIL = 'oktodeck@yachtcount.app';
 const SHARED_PASSWORD = 'Okto26';
-const SHARED_USERNAME = 'oktodeck';
+const SHARED_USERNAME = 'Oktodeck';
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
