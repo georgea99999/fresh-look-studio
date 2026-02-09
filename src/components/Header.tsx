@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell, Menu, Trash2 } from 'lucide-react';
+import { Search, Bell, Menu, Trash2, LogOut } from 'lucide-react';
 import yachtcountLogo from '@/assets/yachtcount-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -13,13 +13,15 @@ interface HeaderProps {
   onMenuClick?: () => void;
   notifications: Notification[];
   onClearNotifications: () => void;
+  onLogout?: () => void;
 }
 const Header = ({
   searchTerm,
   onSearchChange,
   onMenuClick,
   notifications,
-  onClearNotifications
+  onClearNotifications,
+  onLogout
 }: HeaderProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const formatTimestamp = (timestamp: string) => {
@@ -104,6 +106,13 @@ const Header = ({
               </ScrollArea>
             </PopoverContent>
           </Popover>
+
+          {/* Mobile Logout */}
+          {onLogout && (
+            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-sidebar-accent md:hidden" onClick={onLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          )}
         </div>
       </div>
 
