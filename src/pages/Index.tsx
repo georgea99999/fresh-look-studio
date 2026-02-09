@@ -67,6 +67,7 @@ const Index = ({ onLogout }: IndexProps) => {
         onMenuClick={() => setSidebarOpen(true)}
         notifications={notifications}
         onClearNotifications={clearNotifications}
+        onLogout={onLogout}
       />
 
       <div className="flex flex-1 relative">

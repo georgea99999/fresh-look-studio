@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import yachtcountLogo from '@/assets/yachtcount-logo.png';
+import loginBg from '@/assets/login-bg.jpg';
 
 interface LoginProps {
   onLogin: (username: string, password: string, keepLoggedIn: boolean) => Promise<{ error: string | null }>;
@@ -30,16 +31,30 @@ const Login = ({ onLogin }: LoginProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center space-y-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url(${loginBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-primary/60 backdrop-blur-sm" />
+
+      <Card className="w-full max-w-sm relative z-10 border-border/30 bg-card/90 backdrop-blur-md shadow-2xl">
+        <CardHeader className="text-center space-y-4 pb-2">
           <div className="flex justify-center">
-            <img src={yachtcountLogo} alt="YachtCount Logo" className="w-20 h-20 object-contain rounded-lg" />
+            <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-primary/20">
+              <img src={yachtcountLogo} alt="YachtCount Logo" className="w-full h-full object-contain" />
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">YachtCount</CardTitle>
-          <p className="text-sm text-muted-foreground italic">
-            Professional Inventory Systems for Maritime Excellence.
-          </p>
+          <div>
+            <CardTitle className="text-2xl font-bold tracking-tight">YachtCount</CardTitle>
+            <p className="text-sm text-muted-foreground italic mt-1">
+              Professional Inventory Systems for Maritime Excellence.
+            </p>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
