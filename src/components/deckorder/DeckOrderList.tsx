@@ -278,13 +278,10 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
       )}
 
       {/* Table Header */}
-      <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium">
-        <div className="col-span-3">Product</div>
-        <div className="col-span-2">Colour</div>
-        <div className="col-span-1">Size</div>
-        <div className="col-span-2">Qty</div>
-        <div className="col-span-2">Link</div>
-        <div className="col-span-2 text-center">Actions</div>
+      <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium">
+        <div className="flex-1 min-w-0">Product</div>
+        <div className="w-20 text-center flex-shrink-0">Qty</div>
+        <div className="w-20 text-center flex-shrink-0">Actions</div>
       </div>
 
       {/* Items List */}
@@ -349,48 +346,25 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
 
               return (
                 <div key={item.id}>
-                  <div className="grid grid-cols-12 gap-2 px-4 py-3 items-center hover:bg-muted/50">
-                    <div className="col-span-3 font-medium min-w-0">
-                      {hasLongName ? (
-                        <button
-                          onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                          className="flex items-center gap-1 text-left w-full"
-                        >
-                          <span className="truncate flex-1">{item.productName}</span>
-                          {isExpanded ? (
-                            <ChevronUp className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                          )}
-                        </button>
+                  <div 
+                    className="flex items-center gap-2 px-4 py-3 hover:bg-muted/50 cursor-pointer"
+                    onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                  >
+                    <div className="flex-1 min-w-0 flex items-center gap-1">
+                      <span className={isExpanded ? "font-medium break-words" : "font-medium truncate"}>{item.productName}</span>
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                       ) : (
-                        <span className="truncate block">{item.productName}</span>
+                        <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                       )}
                     </div>
-                    <div className="col-span-2 text-muted-foreground truncate">{item.colour || '-'}</div>
-                    <div className="col-span-1 text-muted-foreground truncate">{item.size || '-'}</div>
-                    <div className="col-span-2 font-medium">{item.quantity}</div>
-                    <div className="col-span-2 min-w-0">
-                      {item.link ? (
-                        <a
-                          href={item.link.startsWith('http') ? item.link : `https://${item.link}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-primary hover:underline truncate"
-                        >
-                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">Link</span>
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </div>
-                    <div className="col-span-2 flex justify-center gap-1">
+                    <div className="w-20 text-center flex-shrink-0 font-medium">{item.quantity}</div>
+                    <div className="w-20 flex justify-center gap-1 flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-primary"
-                        onClick={() => handleStartEdit(item)}
+                        onClick={(e) => { e.stopPropagation(); handleStartEdit(item); }}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -398,16 +372,36 @@ const DeckOrderList = ({ items, onAddItem, onUpdateItem, onDeleteItem, onClearAl
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => onDeleteItem(item.id)}
+                        onClick={(e) => { e.stopPropagation(); onDeleteItem(item.id); }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                  {/* Expanded name panel */}
-                  {hasLongName && isExpanded && (
-                    <div className="px-4 py-2 bg-muted/30 border-t">
-                      <p className="text-sm font-medium break-words">{item.productName}</p>
+                  {/* Expanded details panel */}
+                  {isExpanded && (
+                    <div className="px-4 py-2 bg-muted/30 border-t space-y-1">
+                      {item.colour && (
+                        <p className="text-sm"><span className="text-muted-foreground">Colour:</span> {item.colour}</p>
+                      )}
+                      {item.size && (
+                        <p className="text-sm"><span className="text-muted-foreground">Size:</span> {item.size}</p>
+                      )}
+                      {item.link && (
+                        <a
+                          href={item.link.startsWith('http') ? item.link : `https://${item.link}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          <span className="break-all">{item.link}</span>
+                        </a>
+                      )}
+                      {!item.colour && !item.size && !item.link && (
+                        <p className="text-sm text-muted-foreground">No additional details</p>
+                      )}
                     </div>
                   )}
                 </div>

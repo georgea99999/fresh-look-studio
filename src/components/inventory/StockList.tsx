@@ -27,6 +27,7 @@ interface StockListProps {
   onUpdateQuantity: (id: string, change: number) => void;
   onUpdateQuantityDirect: (id: string, value: number) => void;
   onDelete: (id: string) => void;
+  onEditItem?: (id: string, updates: { name: string; box: string }) => void;
   totalItems: number;
   totalQuantity: number;
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
@@ -42,6 +43,7 @@ const StockList = ({
   onUpdateQuantity,
   onUpdateQuantityDirect,
   onDelete,
+  onEditItem,
   totalItems,
   totalQuantity,
   onSendToDeckOrder,
@@ -275,6 +277,7 @@ const StockList = ({
               onUpdateQuantity={onUpdateQuantity}
               onUpdateQuantityDirect={onUpdateQuantityDirect}
               onDelete={onDelete}
+              onEditItem={onEditItem}
               onSelect={handleSelectForOrder}
             />
           ))
@@ -287,6 +290,7 @@ const StockList = ({
               onUpdateQuantity={onUpdateQuantity}
               onUpdateQuantityDirect={onUpdateQuantityDirect}
               onDelete={onDelete}
+              onEditItem={onEditItem}
               onSelect={handleSelectForOrder}
             />
           ))
@@ -304,6 +308,7 @@ const StockList = ({
                   onUpdateQuantity={onUpdateQuantity}
                   onUpdateQuantityDirect={onUpdateQuantityDirect}
                   onDelete={onDelete}
+                  onEditItem={onEditItem}
                   onSelect={handleSelectForOrder}
                 />
               ))}
