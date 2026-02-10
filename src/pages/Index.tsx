@@ -34,6 +34,7 @@ const Index = ({ onLogout }: IndexProps) => {
     addStockItem,
     updateStockQuantity,
     updateStockQuantityDirect,
+    editStockItem,
     deleteStockItem,
     undoDelete,
     getMonthlyUsage,
@@ -92,6 +93,7 @@ const Index = ({ onLogout }: IndexProps) => {
                 onBoxChange={handleBoxChange}
                 onUpdateQuantity={updateStockQuantity}
                 onUpdateQuantityDirect={updateStockQuantityDirect}
+                onEditItem={editStockItem}
                 onDelete={deleteStockItem}
                 totalItems={totalItems}
                 totalQuantity={totalQuantity}

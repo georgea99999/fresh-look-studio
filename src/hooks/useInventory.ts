@@ -317,6 +317,24 @@ export function useInventory() {
     );
   }, [stockItems]);
 
+  // Edit stock item (name and box)
+  const editStockItem = useCallback(async (id: string, updates: { name: string; box: string }) => {
+    const { error } = await supabase
+      .from('stock_items')
+      .update({ name: updates.name, box: updates.box })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error editing stock item:', error);
+      return;
+    }
+
+    setStockItems(prev =>
+      prev.map(i => (i.id === id ? { ...i, name: updates.name, box: updates.box } : i))
+    );
+    addNotification('updated', updates.name, `Updated "${updates.name}" to ${updates.box}`);
+  }, [addNotification]);
+
   // Delete stock item
   const deleteStockItem = useCallback(async (id: string) => {
     const itemIndex = stockItems.findIndex(i => i.id === id);
@@ -445,6 +463,7 @@ export function useInventory() {
     addStockItem,
     updateStockQuantity,
     updateStockQuantityDirect,
+    editStockItem,
     deleteStockItem,
     undoDelete,
     getMonthlyUsage,
