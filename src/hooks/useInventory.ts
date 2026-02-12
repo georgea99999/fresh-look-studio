@@ -3,6 +3,11 @@ import { StockItem, UsageEntry, Notification } from '@/types/inventory';
 import { supabase } from '@/integrations/supabase/client';
 import { loadDefaultInventory } from '@/data/defaultInventory';
 
+const getUserId = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id ?? null;
+};
+
 export function useInventory() {
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [usageHistory, setUsageHistory] = useState<UsageEntry[]>([]);
@@ -125,11 +130,13 @@ export function useInventory() {
   // Seed default inventory to database
   const seedDefaultInventory = async () => {
     const defaultItems = loadDefaultInventory();
+    const userId = await getUserId();
     const itemsToInsert = defaultItems.map((item, index) => ({
       name: item.name,
       quantity: item.quantity,
       box: item.box,
       sort_order: index,
+      user_id: userId,
     }));
 
     const { data, error } = await supabase
@@ -159,9 +166,10 @@ export function useInventory() {
   const addCustomBox = useCallback(async (boxName: string) => {
     if (customBoxes.includes(boxName)) return;
     
+    const userId = await getUserId();
     const { error } = await supabase
       .from('custom_boxes')
-      .insert({ name: boxName });
+      .insert({ name: boxName, user_id: userId });
 
     if (!error) {
       setCustomBoxes(prev => [...prev, boxName]);
@@ -200,6 +208,7 @@ export function useInventory() {
       ? Math.max(...stockItems.map((_, idx) => idx)) + 1 
       : stockItems.length;
 
+    const userId = await getUserId();
     const { data, error } = await supabase
       .from('stock_items')
       .insert({
@@ -207,6 +216,7 @@ export function useInventory() {
         quantity,
         box,
         sort_order: maxSortOrder,
+        user_id: userId,
       })
       .select()
       .single();
@@ -259,10 +269,12 @@ export function useInventory() {
 
     // Record usage if quantity decreased
     if (diff > 0) {
+      const userId = await getUserId();
       await supabase.from('usage_history').insert({
         item_name: item.name,
         box: item.box,
         quantity: diff,
+        user_id: userId,
       });
 
       setUsageHistory(prev => [{
@@ -298,10 +310,12 @@ export function useInventory() {
 
     // Record usage if quantity decreased
     if (diff > 0) {
+      const userId = await getUserId();
       await supabase.from('usage_history').insert({
         item_name: item.name,
         box: item.box,
         quantity: diff,
+        user_id: userId,
       });
 
       setUsageHistory(prev => [{
@@ -363,6 +377,7 @@ export function useInventory() {
 
     const restored = deletedItems[0];
 
+    const userId = await getUserId();
     const { data, error } = await supabase
       .from('stock_items')
       .insert({
@@ -370,6 +385,7 @@ export function useInventory() {
         quantity: restored.item.quantity,
         box: restored.item.box,
         sort_order: restored.index,
+        user_id: userId,
       })
       .select()
       .single();
