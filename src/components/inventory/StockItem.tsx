@@ -199,7 +199,12 @@ const StockItemRow = ({
                       {' '}
                       {new Date(entry.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className="text-destructive font-medium">-{entry.quantity}</span>
+                    <span className={cn(
+                      "font-medium",
+                      entry.quantity > 0 ? "text-destructive" : "text-green-600 dark:text-green-400"
+                    )}>
+                      {entry.quantity > 0 ? `-${entry.quantity}` : `+${Math.abs(entry.quantity)}`}
+                    </span>
                   </div>
                 ))}
               </div>
