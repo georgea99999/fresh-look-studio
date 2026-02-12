@@ -267,8 +267,8 @@ export function useInventory() {
       return;
     }
 
-    // Record usage if quantity decreased
-    if (diff > 0) {
+    // Record usage for any quantity change
+    if (diff !== 0) {
       const userId = await getUserId();
       await supabase.from('usage_history').insert({
         item_name: item.name,
@@ -308,8 +308,8 @@ export function useInventory() {
       return;
     }
 
-    // Record usage if quantity decreased
-    if (diff > 0) {
+    // Record usage for any quantity change
+    if (diff !== 0) {
       const userId = await getUserId();
       await supabase.from('usage_history').insert({
         item_name: item.name,
