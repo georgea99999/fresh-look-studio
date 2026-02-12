@@ -83,25 +83,55 @@ const StockList = ({
       return indexA - indexB;
     });
 
+    const tableRows = sortedBoxes.map(box => 
+      groupedForPDF[box].map(item => 
+        '<tr><td>' + item.name + '</td><td>' + item.box + '</td><td>' + item.quantity + '</td></tr>'
+      ).join('')
+    ).join('');
+
+    const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
+
     const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
         <title>Stock Take - ${currentDate}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 40px; }
+          body { font-family: Arial, sans-serif; padding: 40px; padding-top: 70px; }
           h1 { color: #1a365d; margin-bottom: 5px; }
           .date { color: #666; margin-bottom: 30px; }
-          .box-section { margin-bottom: 30px; }
-          .box-header { background-color: #e2e8f0; padding: 8px 12px; font-weight: bold; margin-bottom: 0; }
           table { width: 100%; border-collapse: collapse; margin-top: 0; }
           th { background-color: #5f8b9a; color: white; padding: 12px 8px; text-align: left; }
           td { padding: 10px 8px; border-bottom: 1px solid #ddd; }
           tr:nth-child(even) { background-color: #f9f9f9; }
           .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
+          .floating-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: #1a365d; color: white; padding: 12px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          }
+          .floating-nav span { font-weight: bold; font-size: 16px; }
+          .floating-nav .btn-group { display: flex; gap: 10px; }
+          .floating-nav button {
+            padding: 8px 20px; border: none; border-radius: 6px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+          }
+          .btn-print { background: #5f8b9a; color: white; }
+          .btn-print:hover { background: #4a7585; }
+          .btn-close { background: #e2e8f0; color: #1a365d; }
+          .btn-close:hover { background: #cbd5e0; }
+          @media print { .floating-nav { display: none; } body { padding-top: 40px; } }
         </style>
       </head>
       <body>
+        <div class="floating-nav">
+          <span>Stock Take - ${currentDate}</span>
+          <div class="btn-group">
+            <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
+            <button class="btn-close" onclick="window.close()">Close</button>
+          </div>
+        </div>
         <h1>YachtCount - Stock Take</h1>
         <p class="date">Generated: ${currentDate}</p>
         <table>
@@ -113,19 +143,11 @@ const StockList = ({
             </tr>
           </thead>
           <tbody>
-            ${sortedBoxes.map(box => 
-              groupedForPDF[box].map(item => `
-                <tr>
-                  <td>${item.name}</td>
-                  <td>${item.box}</td>
-                  <td>${item.quantity}</td>
-                </tr>
-              `).join('')
-            ).join('')}
+            ${tableRows}
           </tbody>
         </table>
         <div class="footer">
-          <p>Total Items: ${items.length} | Total Quantity: ${items.reduce((sum, i) => sum + i.quantity, 0)}</p>
+          <p>Total Items: ${items.length} | Total Quantity: ${totalQty}</p>
           <p>Professional Inventory Systems for Maritime Excellence.</p>
         </div>
       </body>
