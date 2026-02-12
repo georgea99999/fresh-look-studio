@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Minus, Plus, Trash2, Package, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
-import { StockItem as StockItemType, BOX_OPTIONS } from '@/types/inventory';
+import { StockItem as StockItemType, BOX_OPTIONS, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,6 +21,7 @@ interface StockItemProps {
   onEditItem?: (id: string, updates: { name: string; box: string }) => void;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
+  usageHistory?: UsageEntry[];
 }
 
 const StockItemRow = ({ 
@@ -30,13 +31,19 @@ const StockItemRow = ({
   onDelete,
   onEditItem,
   isSelected,
-  onSelect 
+  onSelect,
+  usageHistory = [],
 }: StockItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
   const [editBox, setEditBox] = useState(item.box);
   const isLongName = item.name.length > 20;
+
+  // Get usage history for this specific item
+  const itemHistory = usageHistory.filter(
+    entry => entry.itemName === item.name && entry.box === item.box
+  );
 
   const handleStartEdit = () => {
     setEditName(item.name);
@@ -116,28 +123,20 @@ const StockItemRow = ({
         
         {/* Name & Box */}
         <div 
-          className={cn(
-            "flex-1 min-w-0 cursor-pointer",
-            isLongName && "hover:bg-muted/50 rounded px-1 -mx-1"
-          )}
-          onClick={() => isLongName && setIsExpanded(!isExpanded)}
+          className="flex-1 min-w-0 cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1"
+          onClick={() => setIsExpanded(!isExpanded)}
         >
           <div className="flex items-center gap-1">
-            <p className={cn(
-              "font-medium text-sm",
-              !isExpanded && "truncate"
-            )}>
+            <p className="font-medium text-sm truncate">
               {item.name}
             </p>
-            {isLongName && (
-              <Button variant="ghost" size="icon" className="h-4 w-4 flex-shrink-0 p-0">
-                {isExpanded ? (
-                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                )}
-              </Button>
-            )}
+            <Button variant="ghost" size="icon" className="h-4 w-4 flex-shrink-0 p-0">
+              {isExpanded ? (
+                <ChevronUp className="h-3 w-3 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+              )}
+            </Button>
           </div>
           <p className="text-xs text-muted-foreground">{item.box}</p>
         </div>
@@ -180,12 +179,33 @@ const StockItemRow = ({
         </Button>
       </div>
       
-      {/* Expanded name display */}
-      {isExpanded && isLongName && (
-        <div className="px-3 pb-3 pt-0">
-          <div className="bg-muted/50 rounded-md p-2 text-sm">
-            <span className="text-muted-foreground text-xs">Full name: </span>
-            {item.name}
+      {/* Expanded details */}
+      {isExpanded && (
+        <div className="px-3 pb-3 pt-0 space-y-2">
+          {isLongName && (
+            <div className="bg-muted/50 rounded-md p-2 text-sm">
+              <span className="text-muted-foreground text-xs">Full name: </span>
+              {item.name}
+            </div>
+          )}
+          <div className="bg-muted/50 rounded-md p-2">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Quantity Changes</p>
+            {itemHistory.length > 0 ? (
+              <div className="space-y-1 max-h-32 overflow-auto">
+                {itemHistory.slice(0, 10).map((entry, idx) => (
+                  <div key={idx} className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                      {' '}
+                      {new Date(entry.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <span className="text-destructive font-medium">-{entry.quantity}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">No changes recorded</p>
+            )}
           </div>
         </div>
       )}

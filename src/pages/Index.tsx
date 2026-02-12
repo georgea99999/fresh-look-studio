@@ -31,6 +31,7 @@ const Index = ({ onLogout }: IndexProps) => {
     totalItems,
     totalQuantity,
     availableMonths,
+    usageHistory,
     addStockItem,
     updateStockQuantity,
     updateStockQuantityDirect,
@@ -98,6 +99,7 @@ const Index = ({ onLogout }: IndexProps) => {
                 totalItems={totalItems}
                 totalQuantity={totalQuantity}
                 onSendToDeckOrder={handleSendToDeckOrder}
+                usageHistory={usageHistory}
               />
             )}
 

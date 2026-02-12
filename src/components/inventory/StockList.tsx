@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ArrowUpDown, Download, Package } from 'lucide-react';
-import { StockItem, BOX_OPTIONS, DeckOrderItem } from '@/types/inventory';
+import { StockItem, BOX_OPTIONS, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -31,6 +31,7 @@ interface StockListProps {
   totalItems: number;
   totalQuantity: number;
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
+  usageHistory?: UsageEntry[];
 }
 
 type SortOption = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';
@@ -47,6 +48,7 @@ const StockList = ({
   totalItems,
   totalQuantity,
   onSendToDeckOrder,
+  usageHistory = [],
 }: StockListProps) => {
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -301,6 +303,7 @@ const StockList = ({
               onDelete={onDelete}
               onEditItem={onEditItem}
               onSelect={handleSelectForOrder}
+              usageHistory={usageHistory}
             />
           ))
         ) : searchTerm ? (
@@ -314,6 +317,7 @@ const StockList = ({
               onDelete={onDelete}
               onEditItem={onEditItem}
               onSelect={handleSelectForOrder}
+              usageHistory={usageHistory}
             />
           ))
         ) : (
@@ -332,6 +336,7 @@ const StockList = ({
                   onDelete={onDelete}
                   onEditItem={onEditItem}
                   onSelect={handleSelectForOrder}
+                  usageHistory={usageHistory}
                 />
               ))}
             </div>
