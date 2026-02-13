@@ -83,11 +83,17 @@ const StockList = ({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = allItems.findIndex(i => i.id === active.id);
-    const newIndex = allItems.findIndex(i => i.id === over.id);
+    // Find which box the active item belongs to
+    const activeItem = allItems.find(i => i.id === active.id);
+    const overItem = allItems.find(i => i.id === over.id);
+    if (!activeItem || !overItem || activeItem.box !== overItem.box) return;
+
+    // Reorder within the same box only
+    const reordered = [...allItems];
+    const oldIndex = reordered.findIndex(i => i.id === active.id);
+    const newIndex = reordered.findIndex(i => i.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reordered = [...allItems];
     const [moved] = reordered.splice(oldIndex, 1);
     reordered.splice(newIndex, 0, moved);
     onReorderItems?.(reordered);
@@ -348,22 +354,29 @@ const StockList = ({
               <p>No items found</p>
             </div>
           ) : isReorderMode ? (
-            // Flat reorder mode - all items in one sortable list
-            <SortableContext items={sortedItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
-              {sortedItems.map(item => (
-                <StockItemRow
-                  key={item.id}
-                  item={item}
-                  onUpdateQuantity={onUpdateQuantity}
-                  onUpdateQuantityDirect={onUpdateQuantityDirect}
-                  onDelete={onDelete}
-                  onEditItem={onEditItem}
-                  onSelect={handleSelectForOrder}
-                  usageHistory={usageHistory}
-                  isDragEnabled
-                />
-              ))}
-            </SortableContext>
+            // Grouped reorder mode - sortable within each box
+            sortedBoxEntries.map(([box, boxItems]) => (
+              <div key={box}>
+                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
+                  {box}
+                </div>
+                <SortableContext items={boxItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                  {boxItems.map(item => (
+                    <StockItemRow
+                      key={item.id}
+                      item={item}
+                      onUpdateQuantity={onUpdateQuantity}
+                      onUpdateQuantityDirect={onUpdateQuantityDirect}
+                      onDelete={onDelete}
+                      onEditItem={onEditItem}
+                      onSelect={handleSelectForOrder}
+                      usageHistory={usageHistory}
+                      isDragEnabled
+                    />
+                  ))}
+                </SortableContext>
+              </div>
+            ))
           ) : selectedBox && selectedBox !== 'all' ? (
             sortedItems.map(item => (
               <StockItemRow
