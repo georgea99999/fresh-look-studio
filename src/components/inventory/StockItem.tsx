@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Minus, Plus, Trash2, Package, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
+import { Minus, Plus, Trash2, Package, ChevronDown, ChevronUp, Check, X, GripVertical } from 'lucide-react';
 import { StockItem as StockItemType, BOX_OPTIONS, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface StockItemProps {
   item: StockItemType;
@@ -22,6 +24,7 @@ interface StockItemProps {
   isSelected?: boolean;
   onSelect?: (id: string) => void;
   usageHistory?: UsageEntry[];
+  isDragEnabled?: boolean;
 }
 
 const StockItemRow = ({ 
@@ -33,12 +36,22 @@ const StockItemRow = ({
   isSelected,
   onSelect,
   usageHistory = [],
+  isDragEnabled = false,
 }: StockItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
   const [editBox, setEditBox] = useState(item.box);
   const isLongName = item.name.length > 20;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id, disabled: !isDragEnabled });
 
   // Get usage history for this specific item
   const itemHistory = usageHistory.filter(
@@ -99,12 +112,34 @@ const StockItemRow = ({
     );
   }
 
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   return (
-    <div className={cn(
-      "inventory-row border-b border-border last:border-b-0",
-      item.quantity === 0 && "opacity-50"
-    )}>
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "inventory-row border-b border-border last:border-b-0",
+        item.quantity === 0 && "opacity-50",
+        isDragging && "z-50 shadow-lg"
+      )}
+    >
       <div className="flex items-center gap-2 px-3 py-3">
+        {/* Drag Handle */}
+        {isDragEnabled && (
+          <button
+            {...attributes}
+            {...listeners}
+            className="touch-none w-6 h-8 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground"
+          >
+            <GripVertical className="w-4 h-4" />
+          </button>
+        )}
+        
         {/* Checkbox */}
         <Checkbox 
           checked={isSelected}
