@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, Download, Package } from 'lucide-react';
+import { ArrowUpDown, Download, Package, GripVertical } from 'lucide-react';
 import { StockItem, BOX_OPTIONS, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,9 +18,25 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import StockItemRow from './StockItem';
 import SendToDeckOrderDialog from './SendToDeckOrderDialog';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
 interface StockListProps {
   items: StockItem[];
+  allItems: StockItem[];
   searchTerm: string;
   selectedBox: string;
   onBoxChange: (value: string) => void;
@@ -32,12 +48,14 @@ interface StockListProps {
   totalQuantity: number;
   onSendToDeckOrder?: (item: Omit<DeckOrderItem, 'id'>) => void;
   usageHistory?: UsageEntry[];
+  onReorderItems?: (items: StockItem[]) => void;
 }
 
 type SortOption = 'default' | 'name-asc' | 'name-desc' | 'qty-asc' | 'qty-desc';
 
 const StockList = ({
   items,
+  allItems,
   searchTerm,
   selectedBox,
   onBoxChange,
@@ -49,10 +67,31 @@ const StockList = ({
   totalQuantity,
   onSendToDeckOrder,
   usageHistory = [],
+  onReorderItems,
 }: StockListProps) => {
   const [selectedItemForOrder, setSelectedItemForOrder] = useState<StockItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('default');
+  const [isReorderMode, setIsReorderMode] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = allItems.findIndex(i => i.id === active.id);
+    const newIndex = allItems.findIndex(i => i.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = [...allItems];
+    const [moved] = reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, moved);
+    onReorderItems?.(reordered);
+  };
 
   const handleExportPDF = () => {
     if (items.length === 0) {
@@ -262,6 +301,16 @@ const StockList = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Button
+          variant={isReorderMode ? "default" : "outline"}
+          size="sm"
+          className="gap-1"
+          onClick={() => setIsReorderMode(!isReorderMode)}
+        >
+          <GripVertical className="h-4 w-4" />
+          {isReorderMode ? 'Done' : 'Reorder'}
+        </Button>
         
         <Select value={selectedBox} onValueChange={onBoxChange}>
           <SelectTrigger className="flex-1 h-9">
@@ -287,47 +336,21 @@ const StockList = ({
 
       {/* Items List */}
       <div className="flex-1 overflow-auto bg-card">
-        {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <Package className="h-12 w-12 mb-3 opacity-50" />
-            <p>No items found</p>
-          </div>
-        ) : selectedBox && selectedBox !== 'all' ? (
-          // Flat list when filtering by box only
-          sortedItems.map(item => (
-            <StockItemRow
-              key={item.id}
-              item={item}
-              onUpdateQuantity={onUpdateQuantity}
-              onUpdateQuantityDirect={onUpdateQuantityDirect}
-              onDelete={onDelete}
-              onEditItem={onEditItem}
-              onSelect={handleSelectForOrder}
-              usageHistory={usageHistory}
-            />
-          ))
-        ) : searchTerm ? (
-          // Flat list when searching - show results without box grouping
-          sortedItems.map(item => (
-            <StockItemRow
-              key={item.id}
-              item={item}
-              onUpdateQuantity={onUpdateQuantity}
-              onUpdateQuantityDirect={onUpdateQuantityDirect}
-              onDelete={onDelete}
-              onEditItem={onEditItem}
-              onSelect={handleSelectForOrder}
-              usageHistory={usageHistory}
-            />
-          ))
-        ) : (
-          // Grouped by box - default view (sorted by BOX_OPTIONS order)
-          sortedBoxEntries.map(([box, boxItems]) => (
-            <div key={box}>
-              <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
-                {box}
-              </div>
-              {boxItems.map(item => (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          modifiers={[restrictToVerticalAxis]}
+        >
+          {items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Package className="h-12 w-12 mb-3 opacity-50" />
+              <p>No items found</p>
+            </div>
+          ) : isReorderMode ? (
+            // Flat reorder mode - all items in one sortable list
+            <SortableContext items={sortedItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+              {sortedItems.map(item => (
                 <StockItemRow
                   key={item.id}
                   item={item}
@@ -337,11 +360,58 @@ const StockList = ({
                   onEditItem={onEditItem}
                   onSelect={handleSelectForOrder}
                   usageHistory={usageHistory}
+                  isDragEnabled
                 />
               ))}
-            </div>
-          ))
-        )}
+            </SortableContext>
+          ) : selectedBox && selectedBox !== 'all' ? (
+            sortedItems.map(item => (
+              <StockItemRow
+                key={item.id}
+                item={item}
+                onUpdateQuantity={onUpdateQuantity}
+                onUpdateQuantityDirect={onUpdateQuantityDirect}
+                onDelete={onDelete}
+                onEditItem={onEditItem}
+                onSelect={handleSelectForOrder}
+                usageHistory={usageHistory}
+              />
+            ))
+          ) : searchTerm ? (
+            sortedItems.map(item => (
+              <StockItemRow
+                key={item.id}
+                item={item}
+                onUpdateQuantity={onUpdateQuantity}
+                onUpdateQuantityDirect={onUpdateQuantityDirect}
+                onDelete={onDelete}
+                onEditItem={onEditItem}
+                onSelect={handleSelectForOrder}
+                usageHistory={usageHistory}
+              />
+            ))
+          ) : (
+            sortedBoxEntries.map(([box, boxItems]) => (
+              <div key={box}>
+                <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
+                  {box}
+                </div>
+                {boxItems.map(item => (
+                  <StockItemRow
+                    key={item.id}
+                    item={item}
+                    onUpdateQuantity={onUpdateQuantity}
+                    onUpdateQuantityDirect={onUpdateQuantityDirect}
+                    onDelete={onDelete}
+                    onEditItem={onEditItem}
+                    onSelect={handleSelectForOrder}
+                    usageHistory={usageHistory}
+                  />
+                ))}
+              </div>
+            ))
+          )}
+        </DndContext>
       </div>
 
       {/* Bottom Actions */}

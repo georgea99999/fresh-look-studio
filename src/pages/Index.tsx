@@ -20,6 +20,7 @@ const Index = ({ onLogout }: IndexProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const {
+    stockItems,
     filteredItems,
     deletedItems,
     notifications,
@@ -41,6 +42,7 @@ const Index = ({ onLogout }: IndexProps) => {
     getMonthlyUsage,
     clearNotifications,
     addCustomBox,
+    reorderStockItems,
   } = useInventory();
 
   const {
@@ -89,6 +91,7 @@ const Index = ({ onLogout }: IndexProps) => {
             {activeTab === 'stock' && (
               <StockList
                 items={filteredItems}
+                allItems={stockItems}
                 searchTerm={searchTerm}
                 selectedBox={selectedBox}
                 onBoxChange={handleBoxChange}
@@ -100,6 +103,7 @@ const Index = ({ onLogout }: IndexProps) => {
                 totalQuantity={totalQuantity}
                 onSendToDeckOrder={handleSendToDeckOrder}
                 usageHistory={usageHistory}
+                onReorderItems={reorderStockItems}
               />
             )}
 

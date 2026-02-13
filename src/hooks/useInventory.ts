@@ -462,6 +462,21 @@ export function useInventory() {
     return Object.values(aggregated).sort((a, b) => b.quantity - a.quantity);
   }, [usageHistory]);
 
+  // Reorder stock items
+  const reorderStockItems = useCallback(async (reorderedItems: StockItem[]) => {
+    setStockItems(reorderedItems);
+    
+    // Update sort_order in DB for all items
+    const updates = reorderedItems.map((item, index) => 
+      supabase
+        .from('stock_items')
+        .update({ sort_order: index })
+        .eq('id', item.id)
+    );
+    
+    await Promise.all(updates);
+  }, []);
+
   return {
     stockItems,
     filteredItems,
@@ -485,6 +500,7 @@ export function useInventory() {
     getMonthlyUsage,
     clearNotifications,
     addCustomBox,
+    reorderStockItems,
     isLoading,
   };
 }
