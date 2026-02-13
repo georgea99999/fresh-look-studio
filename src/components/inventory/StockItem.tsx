@@ -115,7 +115,9 @@ const StockItemRow = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.6 : 1,
+    position: isDragging ? 'relative' as const : undefined,
+    zIndex: isDragging ? 50 : undefined,
   };
 
   return (
@@ -123,9 +125,9 @@ const StockItemRow = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "inventory-row border-b border-border last:border-b-0",
-        item.quantity === 0 && "opacity-50",
-        isDragging && "z-50 shadow-lg"
+        "inventory-row border-b border-border last:border-b-0 bg-card",
+        item.quantity === 0 && !isDragging && "opacity-50",
+        isDragging && "shadow-xl ring-2 ring-primary/30 rounded-md"
       )}
     >
       <div className="flex items-center gap-2 px-3 py-3">
