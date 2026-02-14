@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { ArrowUpDown, Download, Package, GripVertical } from 'lucide-react';
 import { StockItem, BOX_OPTIONS, DeckOrderItem, UsageEntry } from '@/types/inventory';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import StockItemRow from './StockItem';
 import SendToDeckOrderDialog from './SendToDeckOrderDialog';
+import SortableBoxHeader from './SortableBoxHeader';
 import {
   DndContext,
   closestCenter,
@@ -27,6 +28,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -73,31 +76,63 @@ const StockList = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [isReorderMode, setIsReorderMode] = useState(false);
+  const [reorderBoxes, setReorderBoxes] = useState(false);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 5 } }),
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(String(event.active.id));
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragId(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // Find which box the active item belongs to
+    if (reorderBoxes) {
+      // Reorder entire box sections
+      const boxOrder = sortedBoxEntries.map(([box]) => box);
+      const oldIdx = boxOrder.indexOf(String(active.id));
+      const newIdx = boxOrder.indexOf(String(over.id));
+      if (oldIdx === -1 || newIdx === -1) return;
+
+      const newBoxOrder = [...boxOrder];
+      const [moved] = newBoxOrder.splice(oldIdx, 1);
+      newBoxOrder.splice(newIdx, 0, moved);
+
+      // Rebuild allItems in new box order
+      const reordered: StockItem[] = [];
+      newBoxOrder.forEach(box => {
+        reordered.push(...allItems.filter(i => i.box === box));
+      });
+      // Add items from boxes not in the current view
+      allItems.forEach(i => {
+        if (!reordered.find(r => r.id === i.id)) reordered.push(i);
+      });
+      onReorderItems?.(reordered);
+      return;
+    }
+
+    // Item reorder within box
     const activeItem = allItems.find(i => i.id === active.id);
     const overItem = allItems.find(i => i.id === over.id);
     if (!activeItem || !overItem || activeItem.box !== overItem.box) return;
 
-    // Reorder within the same box only
     const reordered = [...allItems];
     const oldIndex = reordered.findIndex(i => i.id === active.id);
     const newIndex = reordered.findIndex(i => i.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const [moved] = reordered.splice(oldIndex, 1);
-    reordered.splice(newIndex, 0, moved);
+    const [movedItem] = reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, movedItem);
     onReorderItems?.(reordered);
   };
+
+  const activeDragItem = activeDragId ? allItems.find(i => i.id === activeDragId) : null;
 
   const handleExportPDF = () => {
     if (items.length === 0) {
@@ -312,11 +347,29 @@ const StockList = ({
           variant={isReorderMode ? "default" : "outline"}
           size="sm"
           className="gap-1"
-          onClick={() => setIsReorderMode(!isReorderMode)}
+          onClick={() => {
+            if (isReorderMode) {
+              setIsReorderMode(false);
+              setReorderBoxes(false);
+            } else {
+              setIsReorderMode(true);
+            }
+          }}
         >
           <GripVertical className="h-4 w-4" />
           {isReorderMode ? 'Done' : 'Reorder'}
         </Button>
+
+        {isReorderMode && (
+          <Button
+            variant={reorderBoxes ? "default" : "outline"}
+            size="sm"
+            className="gap-1 text-xs"
+            onClick={() => setReorderBoxes(!reorderBoxes)}
+          >
+            {reorderBoxes ? 'Items' : 'Boxes'}
+          </Button>
+        )}
         
         <Select value={selectedBox} onValueChange={onBoxChange}>
           <SelectTrigger className="flex-1 h-9">
@@ -345,6 +398,7 @@ const StockList = ({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           modifiers={[restrictToVerticalAxis]}
         >
@@ -353,8 +407,15 @@ const StockList = ({
               <Package className="h-12 w-12 mb-3 opacity-50" />
               <p>No items found</p>
             </div>
+          ) : isReorderMode && reorderBoxes ? (
+            // Box reorder mode
+            <SortableContext items={sortedBoxEntries.map(([box]) => box)} strategy={verticalListSortingStrategy}>
+              {sortedBoxEntries.map(([box, boxItems]) => (
+                <SortableBoxHeader key={box} id={box} boxName={box} itemCount={boxItems.length} />
+              ))}
+            </SortableContext>
           ) : isReorderMode ? (
-            // Grouped reorder mode - sortable within each box
+            // Item reorder mode within boxes
             sortedBoxEntries.map(([box, boxItems]) => (
               <div key={box}>
                 <div className="px-4 py-2 bg-muted/30 text-sm font-semibold text-muted-foreground sticky top-0">
@@ -424,6 +485,22 @@ const StockList = ({
               </div>
             ))
           )}
+
+          <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+            {activeDragId && reorderBoxes ? (
+              <div className="px-4 py-3 bg-primary text-primary-foreground rounded-md shadow-xl text-sm font-semibold">
+                {activeDragId}
+              </div>
+            ) : activeDragItem ? (
+              <div className="bg-card shadow-xl ring-2 ring-primary/30 rounded-md opacity-90 px-3 py-3">
+                <div className="flex items-center gap-2">
+                  <GripVertical className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-medium text-sm">{activeDragItem.name}</span>
+                  <span className="ml-auto text-sm text-muted-foreground">{activeDragItem.quantity}</span>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       </div>
 

@@ -43,6 +43,7 @@ const Index = ({ onLogout }: IndexProps) => {
     clearNotifications,
     addCustomBox,
     reorderStockItems,
+    restoreFromNotification,
   } = useInventory();
 
   const {
@@ -71,6 +72,7 @@ const Index = ({ onLogout }: IndexProps) => {
         onMenuClick={() => setSidebarOpen(true)}
         notifications={notifications}
         onClearNotifications={clearNotifications}
+        onRestoreItem={restoreFromNotification}
         onLogout={onLogout}
       />
 

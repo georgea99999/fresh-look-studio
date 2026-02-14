@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell, Menu, Trash2, LogOut } from 'lucide-react';
+import { Search, Bell, Menu, Trash2, LogOut, RotateCcw } from 'lucide-react';
 import yachtcountLogo from '@/assets/yachtcount-logo.png';
 import ThemeToggle from './ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ interface HeaderProps {
   onMenuClick?: () => void;
   notifications: Notification[];
   onClearNotifications: () => void;
+  onRestoreItem?: (notificationId: number) => void;
   onLogout?: () => void;
 }
 const Header = ({
@@ -21,6 +22,7 @@ const Header = ({
   onMenuClick,
   notifications,
   onClearNotifications,
+  onRestoreItem,
   onLogout
 }: HeaderProps) => {
   const [showSearch, setShowSearch] = useState(false);
@@ -98,9 +100,22 @@ const Header = ({
                   </div> : <div className="divide-y">
                     {notifications.map(notif => <div key={notif.id} className="p-3 hover:bg-muted/50">
                         <p className="text-sm">{notif.message}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {formatTimestamp(notif.timestamp)}
-                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xs text-muted-foreground">
+                            {formatTimestamp(notif.timestamp)}
+                          </p>
+                          {notif.type === 'deleted' && notif.deletedItemData && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-xs gap-1 text-primary hover:text-primary"
+                              onClick={() => onRestoreItem?.(notif.id)}
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                              Restore
+                            </Button>
+                          )}
+                        </div>
                       </div>)}
                   </div>}
               </ScrollArea>

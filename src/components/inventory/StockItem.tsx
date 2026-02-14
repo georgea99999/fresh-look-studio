@@ -113,8 +113,8 @@ const StockItemRow = ({
   }
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: CSS.Translate.toString(transform),
+    transition: transition ?? 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1)',
     opacity: isDragging ? 0.6 : 1,
     position: isDragging ? 'relative' as const : undefined,
     zIndex: isDragging ? 50 : undefined,
