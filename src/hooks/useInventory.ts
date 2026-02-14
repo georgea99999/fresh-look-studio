@@ -177,13 +177,14 @@ export function useInventory() {
   }, [customBoxes]);
 
   // Add notification
-  const addNotification = useCallback((type: Notification['type'], itemName: string, message: string) => {
+  const addNotification = useCallback((type: Notification['type'], itemName: string, message: string, deletedItemData?: Notification['deletedItemData']) => {
     const newNotification: Notification = {
       id: Date.now(),
       type,
       itemName,
       message,
       timestamp: new Date().toISOString(),
+      deletedItemData,
     };
     setNotifications(prev => {
       const updated = [newNotification, ...prev].slice(0, 50);
@@ -367,7 +368,12 @@ export function useInventory() {
     }
 
     setDeletedItems([{ item: deletedItem, index: itemIndex }]);
-    addNotification('deleted', deletedItem.name, `Removed "${deletedItem.name}" from ${deletedItem.box}`);
+    addNotification('deleted', deletedItem.name, `Removed "${deletedItem.name}" from ${deletedItem.box}`, {
+      name: deletedItem.name,
+      quantity: deletedItem.quantity,
+      box: deletedItem.box,
+      originalIndex: itemIndex,
+    });
     setStockItems(prev => prev.filter(i => i.id !== id));
   }, [stockItems, addNotification]);
 
@@ -477,6 +483,54 @@ export function useInventory() {
     await Promise.all(updates);
   }, []);
 
+  // Restore a deleted item from notification data
+  const restoreFromNotification = useCallback(async (notificationId: number) => {
+    const notif = notifications.find(n => n.id === notificationId);
+    if (!notif?.deletedItemData) return;
+
+    const { name, quantity, box, originalIndex } = notif.deletedItemData;
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('stock_items')
+      .insert({
+        name,
+        quantity,
+        box,
+        sort_order: originalIndex,
+        user_id: userId,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error restoring item:', error);
+      return;
+    }
+
+    if (data) {
+      setStockItems(prev => {
+        const updated = [...prev];
+        const insertIndex = Math.min(originalIndex, updated.length);
+        updated.splice(insertIndex, 0, {
+          id: data.id,
+          name: data.name,
+          quantity: data.quantity,
+          box: data.box,
+        });
+        return updated;
+      });
+
+      // Remove the notification
+      setNotifications(prev => {
+        const updated = prev.filter(n => n.id !== notificationId);
+        saveNotifications(updated);
+        return updated;
+      });
+
+      addNotification('added', name, `Restored "${name}" to ${box}`);
+    }
+  }, [notifications, addNotification, saveNotifications]);
+
   return {
     stockItems,
     filteredItems,
@@ -501,6 +555,7 @@ export function useInventory() {
     clearNotifications,
     addCustomBox,
     reorderStockItems,
+    restoreFromNotification,
     isLoading,
   };
 }

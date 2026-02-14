@@ -24,6 +24,12 @@ export interface Notification {
   message: string;
   itemName: string;
   timestamp: string;
+  deletedItemData?: {
+    name: string;
+    quantity: number;
+    box: string;
+    originalIndex: number;
+  };
 }
 
 export type TabType = 'stock' | 'deckOrder' | 'reports';
